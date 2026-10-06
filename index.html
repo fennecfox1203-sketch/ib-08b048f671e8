@@ -167,6 +167,30 @@ footer ol{margin:4px 0 8px;padding-left:18px}
 .gline b{color:var(--text)}
 .gline .mini{flex:1 1 40px;min-width:28px;height:8px;border-radius:4px;background:#0e131a;overflow:hidden}
 .gline .mini i{display:block;height:100%;background:linear-gradient(90deg,#3b82f6,#3dd68c)}
+/* 홈 목표 그래프 */
+.gc-h{display:flex;justify-content:space-between;align-items:flex-start;gap:10px}
+.gc-goal{font-size:.8rem;color:var(--muted);margin-top:2px}
+.gc-stats{display:flex;gap:14px;text-align:right}
+.gc-stats .v{display:block;font-size:1.5rem;font-weight:800;line-height:1.05;font-variant-numeric:tabular-nums}
+.gc-stats .l{display:block;font-size:.7rem;color:var(--muted)}
+.gchips{display:grid;grid-template-columns:repeat(5,1fr);gap:5px;margin:12px 0 6px}
+.gchips::-webkit-scrollbar{display:none}
+.gchip{min-width:0;border:1px solid var(--line);background:transparent;color:var(--muted);border-radius:999px;padding:6px 0;font-size:.74rem;letter-spacing:-.02em;font-weight:700;white-space:nowrap;cursor:pointer;font-family:inherit}
+.gchip.on{background:var(--tap);border-color:currentColor}
+.gsvg{width:100%;height:auto;display:block}
+.glegend{display:flex;flex-wrap:wrap;gap:4px 12px;font-size:.7rem;color:var(--muted);margin-top:2px}
+.glegend span{display:inline-flex;align-items:center;gap:5px}
+.glegend .lg-a{display:inline-block;width:16px;height:3px;border-radius:2px}
+.glegend .lg-t{display:inline-block;width:16px;height:0;border-top:2px dashed #8d99ab}
+.glegend .lg-d{display:inline-block;width:8px;height:8px;border-radius:50%}
+.gfoot{display:flex;justify-content:space-between;align-items:center;gap:8px;margin-top:8px}
+.ginfo{font-size:.84rem;color:var(--muted);font-variant-numeric:tabular-nums}
+.ginfo b{color:var(--text)}
+.gmore{flex:0 0 auto;font-size:.82rem;font-weight:700;color:var(--accent);background:none;border:0;cursor:pointer;padding:6px 0;font-family:inherit}
+.gtab-wrap{overflow-x:auto;margin-bottom:14px;-webkit-overflow-scrolling:touch}
+.gtab-wrap .gtab{margin-bottom:0;font-size:.8rem}
+.gtab-wrap .gtab th,.gtab-wrap .gtab td{padding:7px 4px}
+.gtab-wrap .gtab tr>:first-child{position:sticky;left:0;background:var(--card);z-index:1;padding-right:6px}
 </style>
 </head>
 <body>
@@ -355,7 +379,7 @@ async function loadSheet(id){
 }
 
 /* ===== 상태 ===== */
-const state = {tab:'home', data:null, sheetId:''};
+const state = {tab:'home', data:null, sheetId:'', gm:{}};
 
 function showAlert(title, body, soft){
   const a=el('alertBox'); a.className='alert on'+(soft?' soft':'');
@@ -367,6 +391,8 @@ function stamp(){ const d=new Date(),p=n=>String(n).padStart(2,'0'); return (d.g
 async function sync(){
   const btn=el('syncBtn'); btn.disabled=true; btn.textContent='⏳ 불러오는 중';
   const hashK = HASH.k, savedK = lsGet(LS_KEY);
+  const gk = hashK||savedK;  /* 목표 탭은 측정과 동시에 요청 */
+  const goalsP = gk ? loadGoals(gk).then(g=>({id:gk,g}), ()=>({id:gk,g:null})) : null;
   try{
     if(!hashK && !savedK){
       state.data=null; render();
@@ -395,8 +421,12 @@ async function sync(){
       showAlert('주소의 시트를 찾지 못했어요', '<div>열린 주소의 #k 값('+esc(hashK.slice(0,12))+'…)으로는 시트를 불러올 수 없어서, 이 휴대폰에 저장돼 있던 시트를 대신 보여 주고 있어요. 주소가 잘렸는지 확인해 주세요.</div><div style="margin-top:6px;font-size:.85rem">사유: '+esc(hashErr&&hashErr.message||'')+'</div>');
     } else hideAlert();
     el('syncStatus').textContent='시트 최신 '+stamp();
-    render();
-    refreshGoals(usedK);
+    const gr = goalsP ? await Promise.race([goalsP, new Promise(res=>setTimeout(()=>res(null),2500))]) : null;
+    if(gr && gr.id===usedK){ applyGoals(usedK, gr.g); render(); }
+    else { render();
+      if(gr) refreshGoals(usedK);
+      else if(goalsP) goalsP.then(x=>{ if(x.id===usedK){ applyGoals(usedK, x.g); render(); } });
+    }
   }catch(e){
     let cache=null; try{ cache=JSON.parse(lsGet(LS_CACHE)||'null'); }catch(_){}
     const canCache = cache && cache.data && (!hashK || cache.id===hashK || cache.id===savedK);
@@ -707,6 +737,7 @@ function refreshGoals(id){
     .catch(()=>{ GOALS = null; })   /* 목표 탭이 없거나 못 읽으면 조용히 숨김 */
     .then(()=>render());
 }
+function applyGoals(id, g){ if(g){ GOALS=g; lsSet(LS_GOALS, JSON.stringify({id, goals:g})); } else GOALS=null; }
 function cachedGoals(id){ try{ const c = JSON.parse(lsGet(LS_GOALS)||'null'); return c && c.id===id ? c.goals : null; }catch(e){ return null; } }
 
 function todayStr(){ const d=new Date(),p=x=>String(x).padStart(2,'0'); return d.getFullYear()+'-'+p(d.getMonth()+1)+'-'+p(d.getDate()); }
@@ -750,9 +781,9 @@ function goalCard(n, c){ const P=goalOf(n); if(!P) return '';
     (P.goal?'<div class="gsent" style="color:'+c+'">'+esc(P.goal)+'</div>':'')+
     '<div class="gnext">'+(cp?'<span>다음 점검 <b>'+cp.w+'주 차 '+mdw(cp.date)+'</b> <span class="dd">'+dday(cp.date)+'</span></span>':'<span>점검 기간 종료</span>')+
       '<span>다음 측정 '+(nm?'<b>'+mdw(nm)+'</b>':'–')+'</span><span>전체 진행 <b>'+pct.toFixed(0)+'%</b></span></div>'+
-    '<table class="gtab"><tr><th></th><th>지금</th>'+GOALS.weeks.map(w=>'<th>'+w+'주</th>').join('')+'</tr>'+
+    '<div class="gtab-wrap"><table class="gtab"><tr><th></th><th>지금</th>'+GOALS.weeks.map(w=>'<th>'+w+'주</th>').join('')+'</tr>'+
     mets.map(m=>'<tr><td>'+m.n+'</td><td class="now">'+(now[m.k]==null?'–':fx(now[m.k],m.d))+'</td>'+GOALS.weeks.map(w=>'<td'+(w===fin?' class="fin"':'')+'>'+cell(w,m)+'</td>').join('')+'</tr>').join('')+
-    '</table>';
+    '</table></div>';
   const rules=[];
   mets.forEach(m=>{
     const g=goalMetric(P,m,now[m.k]), s=P.pts[0][m.k], tg=P.pts[fin][m.k], u=m.u, cur=now[m.k], md=P.mode[m.k]||{}, L=lab(fin,m.k);
@@ -777,6 +808,104 @@ function goalCard(n, c){ const P=goalOf(n); if(!P) return '';
   return h;
 }
 
+/* ===== 홈: 목표 과정 그래프 (값은 모두 시트에서) ===== */
+function gmDefault(P){ return (P.mode.weight && P.mode.weight.band) ? 'smm' : 'weight'; }
+function cpDateOf(w){ const c=GOALS.checkpoints.find(x=>x.w===w); return c?c.date:''; }
+function goalPath(P, k){
+  const pts=[]; const d0=P.pts[0].date||GOALS.period.start;
+  if(P.pts[0][k]!=null && d0) pts.push({w:0, date:d0, v:P.pts[0][k], L:(P.label[0]||{})[k]});
+  GOALS.weeks.forEach(w=>{ const o=P.pts[w]; const dt=(o&&o.date)||cpDateOf(w); if(o && o[k]!=null && dt) pts.push({w, date:dt, v:o[k], L:(P.label[w]||{})[k]}); });
+  return pts;
+}
+function pathAt(tp, date){
+  if(!tp.length) return null; if(date<=tp[0].date) return tp[0].v; const z=tp[tp.length-1]; if(date>=z.date) return z.v;
+  for(let i=1;i<tp.length;i++){ if(date<=tp[i].date){ const a=tp[i-1], b=tp[i], s=dayDiff(a.date,b.date)||1; return a.v+(b.v-a.v)*dayDiff(a.date,date)/s; } }
+  return z.v;
+}
+function onTrack(P, m, tp, date, v){
+  const md=P.mode[m.k]||{};
+  if(md.band) return v>=md.band[0]-1e-9 && v<=md.band[1]+1e-9;
+  if(md.max!=null) return v<=md.max+1e-9;
+  if(md.min!=null) return v>=md.min-1e-9;
+  const t=pathAt(tp,date), dir=tp[tp.length-1].v-tp[0].v;
+  return dir<0 ? v<=t+1e-9 : v>=t-1e-9;
+}
+function goalChartSVG(n, P, m){
+  const c=colorOf(n), tp=goalPath(P,m.k); if(tp.length<2) return '';
+  const W=320, H=230, L=32, R=36, T=30, B=44, pw=W-L-R, ph=H-T-B;
+  const d0=tp[0].date, d1=tp[tp.length-1].date, span=Math.max(1,dayDiff(d0,d1));
+  const X=dt=>L+Math.max(0,Math.min(1,dayDiff(d0,dt)/span))*pw;
+  const act=(state.data.by[n]||[]).filter(x=>x[m.k]!=null && x.date).map(x=>({date:x.date, v:x[m.k]}));
+  const md=P.mode[m.k]||{};
+  let vals=tp.map(p=>p.v).concat(act.map(a=>a.v)); if(md.band) vals=vals.concat(md.band);
+  let lo=Math.min(...vals), hi=Math.max(...vals); if(hi-lo<1e-6){ lo-=1; hi+=1; }
+  const pad=(hi-lo)*0.16; lo-=pad; hi+=pad*1.25;
+  const Y=v=>T+(1-(v-lo)/(hi-lo))*ph;
+  const fmt=v=>fx(v,m.d);
+  let s='<svg class="gsvg" viewBox="0 0 '+W+' '+H+'" role="img" aria-label="'+esc(n)+' '+m.n+' 목표 과정">';
+  /* 유지 범위 */
+  if(md.band){ const y1=Y(md.band[1]), y0=Y(md.band[0]);
+    s+='<rect x="'+L+'" y="'+y1.toFixed(1)+'" width="'+pw+'" height="'+(y0-y1).toFixed(1)+'" fill="rgba(61,214,140,.11)"/>'+
+       '<line x1="'+L+'" x2="'+(L+pw)+'" y1="'+y1.toFixed(1)+'" y2="'+y1.toFixed(1)+'" stroke="rgba(61,214,140,.45)" stroke-dasharray="2 3"/>'+
+       '<line x1="'+L+'" x2="'+(L+pw)+'" y1="'+y0.toFixed(1)+'" y2="'+y0.toFixed(1)+'" stroke="rgba(61,214,140,.45)" stroke-dasharray="2 3"/>'+
+       '<text x="'+(L+4)+'" y="'+(y0-4).toFixed(1)+'" font-size="9.5" fill="#3dd68c" font-weight="700">유지 '+md.band[0]+'~'+md.band[1]+m.u+'</text>'; }
+  /* 가로 눈금 */
+  const raw=(hi-lo)/3, p10=Math.pow(10,Math.floor(Math.log10(raw))), stp=(m.d===0&&p10>=1?[1,2,5,10]:[1,2,2.5,5,10]).map(k=>k*p10).find(k=>k>=raw)||raw;
+  const tdec=Math.abs(stp-Math.round(stp))<1e-9?0:(Math.abs(stp*10-Math.round(stp*10))<1e-9?1:2);
+  for(let v=Math.ceil(lo/stp)*stp; v<=hi+1e-9; v+=stp){ const y=Y(v);
+    s+='<line x1="'+L+'" x2="'+(L+pw)+'" y1="'+y.toFixed(1)+'" y2="'+y.toFixed(1)+'" stroke="#222b38" stroke-width="1"/>'+
+       '<text x="'+(L-5)+'" y="'+(y+3.5).toFixed(1)+'" font-size="9" fill="#6f7b8c" text-anchor="end">'+fx(v,tdec)+'</text>'; }
+  /* 다음 점검 강조 */
+  const nc=nextCheckpoint(); const ncp=nc && tp.find(p=>p.w===nc.w);
+  if(ncp){ const x=X(ncp.date), lab=dday(ncp.date), tw=lab.length*6+12, tx=Math.max(tw/2, Math.min(W-tw/2, x));
+    s+='<rect x="'+(x-13).toFixed(1)+'" y="'+T+'" width="26" height="'+ph+'" rx="6" fill="rgba(124,156,255,.10)"/>'+
+       '<rect x="'+(tx-tw/2).toFixed(1)+'" y="'+(T-21)+'" width="'+tw+'" height="16" rx="8" fill="#7c9cff"/>'+
+       '<text x="'+tx.toFixed(1)+'" y="'+(T-9.5)+'" font-size="10" font-weight="800" fill="#0b0f14" text-anchor="middle">'+lab+'</text>'; }
+  /* x축: 시점 + 날짜 */
+  tp.forEach(p=>{ const x=X(p.date), on=ncp&&p.w===ncp.w;
+    s+='<line x1="'+x.toFixed(1)+'" x2="'+x.toFixed(1)+'" y1="'+T+'" y2="'+(T+ph)+'" stroke="#1d2531" stroke-width="1"/>'+
+       '<text x="'+x.toFixed(1)+'" y="'+(T+ph+16)+'" font-size="11" font-weight="700" fill="'+(on?'#7c9cff':'#aab4c3')+'" text-anchor="middle">'+(p.w===0?'시작':p.w+'주')+'</text>'+
+       '<text x="'+x.toFixed(1)+'" y="'+(T+ph+30)+'" font-size="9.5" fill="'+(on?'#7c9cff':'#6f7b8c')+'" text-anchor="middle">'+shortDate(p.date)+'</text>'; });
+  /* 목표 점선 */
+  s+='<polyline points="'+tp.map(p=>X(p.date).toFixed(1)+','+Y(p.v).toFixed(1)).join(' ')+'" fill="none" stroke="#8d99ab" stroke-width="1.6" stroke-dasharray="4 4" stroke-linecap="round"/>';
+  /* 실제 측정선 */
+  if(act.length>1) s+='<polyline points="'+act.map(a=>X(a.date).toFixed(1)+','+Y(a.v).toFixed(1)).join(' ')+'" fill="none" stroke="'+c+'" stroke-width="2.6" stroke-linejoin="round" stroke-linecap="round"/>';
+  /* 목표 점 + 값 */
+  const dir=tp[tp.length-1].v-tp[0].v;
+  tp.forEach((p,i)=>{ const x=X(p.date), y=Y(p.v), on=ncp&&p.w===ncp.w, t=p.L||fmt(p.v), tw=t.length*6.3+6;
+    let lx, ly, anc;
+    if(Math.abs(dir)<1e-9){ lx=x; ly=y-9; anc='middle'; }
+    else if(dir<0){ lx=x+5; ly=y-7; anc='start'; }
+    else { lx=x+5; ly=y+14; anc='start'; }
+    if(i===0 && act.length){ lx=x+5; ly=(dir<0? y+15 : y-8); anc='start'; }
+    const rx = anc==='middle' ? lx-tw/2 : lx-3;
+    s+='<rect x="'+rx.toFixed(1)+'" y="'+(ly-10.5).toFixed(1)+'" width="'+tw.toFixed(1)+'" height="14" rx="4" fill="#151b24" fill-opacity=".86"/>'+
+       '<text x="'+lx.toFixed(1)+'" y="'+ly.toFixed(1)+'" font-size="11" font-weight="700" fill="'+(on?'#a9bcff':'#c3ccd9')+'" text-anchor="'+anc+'">'+esc(t)+'</text>'+
+       '<circle cx="'+x.toFixed(1)+'" cy="'+y.toFixed(1)+'" r="'+(on?5:3.6)+'" fill="'+(on?'#7c9cff':'#151b24')+'" stroke="'+(on?'#d6defc':'#aeb8c7')+'" stroke-width="1.6"/>'; });
+  /* 실제 점 (목표선 대비 초록=맞춤/앞섬, 주황=뒤처짐) */
+  act.forEach(a=>{ const ok=onTrack(P,m,tp,a.date,a.v);
+    s+='<circle cx="'+X(a.date).toFixed(1)+'" cy="'+Y(a.v).toFixed(1)+'" r="4.6" fill="'+(ok?'#3dd68c':'#ffb020')+'" stroke="'+c+'" stroke-width="2"/>'; });
+  return s+'</svg>';
+}
+function goalGraphCard(n){
+  const P=goalOf(n), c=colorOf(n), r=latest(n), pct=goalOverall(n), fin=GOALS.fin;
+  const mets=GOAL_METRICS.filter(m=>P.pts[0][m.k]!=null && P.pts[fin][m.k]!=null); if(!mets.length) return '';
+  const want=state.gm[n]||gmDefault(P), m=mets.find(x=>x.k===want)||mets[0];
+  const now=goalNow(n)[m.k], nc=nextCheckpoint(), tp=goalPath(P,m.k), np=nc&&tp.find(p=>p.w===nc.w);
+  const unit=v=>v==null?'–':fx(v,m.d)+m.u;
+  let info='지금 <b>'+unit(now)+'</b>';
+  if(np) info+=' → '+np.w+'주 목표 <b>'+(np.L?esc(np.L)+m.u:unit(np.v))+'</b> <span style="color:#7c9cff;font-weight:800;white-space:nowrap">'+dday(np.date)+'</span>';
+  else info+=' · 최종 목표 <b>'+unit(tp[tp.length-1].v)+'</b>';
+  return '<div class="card gcard">'+
+    '<div class="gc-h"><div><div class="pc-name"><i style="background:'+c+'"></i>'+esc(n)+'</div>'+(P.goal?'<div class="gc-goal">'+esc(P.goal)+'</div>':'')+'</div>'+
+      '<div class="gc-stats"><div><span class="v" style="color:'+c+'">'+(r.score==null?'–':esc(r.score))+'</span><span class="l">점수</span></div><div><span class="v">'+pct.toFixed(0)+'%</span><span class="l">'+fin+'주 진행</span></div></div></div>'+
+    '<div class="gchips">'+mets.map(x=>'<button type="button" class="gchip'+(x.k===m.k?' on':'')+'" data-gm="'+esc(n)+'|'+x.k+'"'+(x.k===m.k?' style="color:'+c+'"':'')+'>'+x.n+'</button>').join('')+'</div>'+
+    goalChartSVG(n,P,m)+
+    '<div class="glegend"><span><i class="lg-a" style="background:'+c+'"></i>실제</span><span><i class="lg-t"></i>목표</span><span><i class="lg-d" style="background:#3dd68c"></i>목표선 맞춤·앞섬</span><span><i class="lg-d" style="background:#ffb020"></i>뒤처짐</span></div>'+
+    '<div class="gfoot"><div class="ginfo">'+info+'</div><button type="button" class="gmore" data-go="'+esc(n)+'">자세히 ›</button></div>'+
+  '</div>';
+}
+
 /* ===== 화면 ===== */
 function renderTabs(){
   const t=el('tabs');
@@ -792,6 +921,7 @@ function renderHome(){
     D.people.map(n=>{ const r=latest(n); return '<div class="fig" data-go="'+esc(n)+'">'+bodySVG(r,colorOf(n),'','#151b24')+'<div class="nm" style="color:'+colorOf(n)+'">'+esc(n)+'</div>'+figLabel(r)+'</div>'; }).join('')+
     '</div></div>';
   D.people.forEach(n=>{
+    if(goalOf(n)){ const gc=goalGraphCard(n); if(gc){ h+=gc; return; } }  /* 목표 탭이 없으면 요약 카드 */
     const r=latest(n), c=colorOf(n);
     h+='<div class="card pcard" data-go="'+esc(n)+'">'+
       '<div class="pc-top"><div><div class="pc-name"><i style="background:'+c+'"></i>'+esc(n)+'</div><div class="pc-date">'+esc((r.date||'')+' '+(r.time||''))+' · '+D.by[n].length+'회 측정</div></div>'+
@@ -914,7 +1044,7 @@ function render(){
   el('sheetLink').innerHTML = state.sheetId ? ' (<a href="https://docs.google.com/spreadsheets/d/'+encodeURIComponent(state.sheetId)+'/edit" target="_blank" rel="noopener">시트 열기</a>)' : '';
 }
 el('tabs').addEventListener('click', e=>{ const b=e.target.closest('[data-tab]'); if(!b) return; state.tab=b.getAttribute('data-tab'); render(); window.scrollTo(0,0); });
-el('panel').addEventListener('click', e=>{ const b=e.target.closest('[data-go]'); if(!b) return; state.tab=b.getAttribute('data-go'); render(); window.scrollTo(0,0); });
+el('panel').addEventListener('click', e=>{ const q=e.target.closest('[data-gm]'); if(q){ const a=q.getAttribute('data-gm').split('|'); state.gm[a[0]]=a[1]; render(); return; } const b=e.target.closest('[data-go]'); if(!b) return; state.tab=b.getAttribute('data-go'); render(); window.scrollTo(0,0); });
 el('syncBtn').addEventListener('click', ()=>sync());
 window.addEventListener('hashchange', ()=>location.reload());
 document.addEventListener('visibilitychange', ()=>{ if(document.visibilityState==='visible') sync(); });
