@@ -56,6 +56,16 @@ header p{margin:4px 0 0;color:var(--muted);font-size:.85rem}
 .pc-score .v{font-size:2.3rem;font-weight:800;line-height:1}
 .pc-score .l{font-size:.75rem;color:var(--muted)}
 .grid4{display:grid;grid-template-columns:1fr 1fr;gap:8px}
+.pc-body{display:grid;grid-template-columns:84px 1fr;gap:10px;align-items:stretch}
+.fig{display:flex;flex-direction:column;align-items:center;justify-content:flex-end;background:var(--card2);border-radius:12px;padding:6px 2px 6px}
+.fig svg{display:block;width:78px;height:184px}
+.fig .fl{font-size:.78rem;font-weight:800;margin-top:2px;white-space:nowrap}
+.figs{display:flex;justify-content:center;gap:18px;align-items:flex-end}
+.figs .fig{background:transparent;padding:0}
+.figs .fig svg{width:110px;height:260px}
+.figs .fig .fl{font-size:.95rem}
+.figs .fig .fs{font-size:.8rem;color:var(--muted);text-align:center;line-height:1.35}
+
 .kv{background:var(--card2);border-radius:12px;padding:10px 12px}
 .kv .l{font-size:.8rem;color:var(--muted)}
 .kv .v{font-size:1.35rem;font-weight:800;font-variant-numeric:tabular-nums}
@@ -440,6 +450,77 @@ function lineChart(title, recs, key, unit, d, color){
   return '<div class="lc">'+head+s+'</div>';
 }
 
+
+/* ===== 체형 그림: 체지방률·BMI·골격근량 값으로 그림 (사람별로 정해 둔 모양 없음) ===== */
+function bodyShape(r){
+  const cl=(v,a,b)=>Math.max(0,Math.min(1,(v-a)/(b-a)));
+  const female=/여/.test(r.sex||'');
+  const fp = r.pbf!=null ? cl(r.pbf, female?20:12, female?40:32) : null;
+  const fb = r.bmi!=null ? cl(r.bmi, 20, 29) : null;
+  let f = fp!=null&&fb!=null ? fp*0.7+fb*0.3 : (fp!=null?fp:(fb!=null?fb:0.4));
+  let m = 0.4;
+  if(r.smm!=null && r.height){ const hm=r.height/100; m=cl(r.smm/(hm*hm), female?7.5:9.2, female?10:11.6); }
+  const hs = r.height ? Math.max(0.86,Math.min(1.04,r.height/183)) : 0.95;
+  return {f,m,hs};
+}
+function bodySVG(r, color, cls, bgc){
+  const {f,m,hs}=bodyShape(r);
+  const G=232, H=218*hs, T=G-H, cx=60;
+  const y=k=>T+H*k, P=v=>v.toFixed(1);
+  const hr=H*0.058, headY=y(0)+hr;
+  const neckY=y(0.125), shY=y(0.17), chY=y(0.27), wY=y(0.41), hipY=y(0.50), crY=y(0.55), knY=y(0.76);
+  const neck=4.4+2.2*f+0.6*m;
+  const sh=16.5+4*m+7*f;                 /* 어깨 */
+  const ch=14+2.5*m+10*f;                 /* 가슴 */
+  const wa=9+16*f;                      /* 허리 */
+  const bel=wa+4*f;                      /* 배 둥근 부분 */
+  const hp=12.5+11*f;                     /* 엉덩이 */
+  const th=8.6+9*f+1.6*m;                /* 허벅지 굵기 */
+  const cf=6.4+5*f+1.2*m;                /* 종아리 굵기 */
+  const aw=5+4.2*f+2*m;                  /* 팔 굵기 */
+  const handX=Math.max(sh+2.5+3*f, bel+aw*0.5+1.5), handY=y(0.52);
+  const elX=Math.max(sh+1.5, (sh+handX)/2+1.5*f), elY=y(0.35);
+  const legX=Math.max(th/2+0.6, hp-th/2-0.3), knX=legX-0.6+0.8*f, footX=knX+0.3;
+  const L=x=>P(cx-x), R=x=>P(cx+x);
+  const bw=wY-chY, bh=hipY-wY;
+  const side=(X)=>
+    ' C'+X(neck)+','+P(shY-3)+' '+X(sh-4)+','+P(shY-3.5)+' '+X(sh)+','+P(shY+2.5)+
+    ' C'+X(sh+0.4)+','+P(shY+7)+' '+X(ch)+','+P(chY-4)+' '+X(ch)+','+P(chY)+
+    ' C'+X(ch+0.3)+','+P(chY+bw*0.45)+' '+X(bel)+','+P(wY-bw*0.35)+' '+X(bel)+','+P(wY+bh*0.15)+
+    ' C'+X(bel)+','+P(wY+bh*0.75)+' '+X(hp+1)+','+P(hipY-1)+' '+X(hp)+','+P(crY-1);
+  const sideRev=(X)=>
+    ' C'+X(hp+1)+','+P(hipY-1)+' '+X(bel)+','+P(wY+bh*0.75)+' '+X(bel)+','+P(wY+bh*0.15)+
+    ' C'+X(bel)+','+P(wY-bw*0.35)+' '+X(ch+0.3)+','+P(chY+bw*0.45)+' '+X(ch)+','+P(chY)+
+    ' C'+X(ch)+','+P(chY-4)+' '+X(sh+0.4)+','+P(shY+7)+' '+X(sh)+','+P(shY+2.5)+
+    ' C'+X(sh-4)+','+P(shY-3.5)+' '+X(neck)+','+P(shY-3)+' '+X(neck)+','+P(neckY);
+  const torso='M'+L(neck)+','+P(neckY)+side(L)+' Q60,'+P(crY+3)+' '+R(hp)+','+P(crY-1)+sideRev(R)+' Z';
+  const bg=bgc||'#1c2430';
+  const arm=s=>{ const X=x=>P(cx+s*x);
+    const d='M'+X(sh-aw*0.4)+','+P(shY+aw*0.45)+' Q'+X(elX)+','+P(elY)+' '+X(handX)+','+P(handY);
+    return '<path d="'+d+'" fill="none" stroke="'+bg+'" stroke-width="'+P(aw+2.4)+'" stroke-linecap="round"/>'+
+           '<path d="'+d+'" fill="none" stroke="'+color+'" stroke-width="'+P(aw)+'" stroke-linecap="round"/>'+
+           '<circle cx="'+X(handX+0.3)+'" cy="'+P(handY+1.2)+'" r="'+P(aw*0.52+0.8)+'" fill="'+color+'"/>'; };
+  const leg=s=>{ const X=x=>P(cx+s*x);
+    const kw=(th+cf)/2, an=cf*0.72, ay=G-3.5, my=(hipY+knY)/2;
+    const d='M'+X(legX-th/2)+','+P(hipY)+
+      ' Q'+X(legX-th/2-0.6)+','+P(my)+' '+X(knX-kw/2)+','+P(knY)+
+      ' Q'+X(knX-cf/2-0.4)+','+P((knY+ay)/2)+' '+X(footX-an/2)+','+P(ay)+
+      ' L'+X(footX+an/2)+','+P(ay)+
+      ' Q'+X(knX+cf/2+0.4)+','+P((knY+ay)/2)+' '+X(knX+kw/2)+','+P(knY)+
+      ' Q'+X(legX+th/2+0.4)+','+P(my)+' '+X(legX+th/2)+','+P(hipY)+' Z';
+    return '<path d="'+d+'" fill="'+color+'"/>'+
+           '<ellipse cx="'+X(footX+2)+'" cy="'+P(G-3)+'" rx="'+P(an*0.5+3)+'" ry="3.2" fill="'+color+'"/>'; };
+  return '<svg class="'+(cls||'')+'" viewBox="10 0 100 236" role="img" aria-label="체형 그림">'+
+    '<ellipse cx="60" cy="'+(G+0.5)+'" rx="'+P(24+14*f)+'" ry="3.2" fill="#000" opacity=".35"/>'+
+    leg(-1)+leg(1)+
+    '<path d="'+torso+'" fill="'+color+'"/>'+
+    '<circle cx="60" cy="'+P(headY)+'" r="'+P(hr)+'" fill="'+color+'"/>'+
+    arm(-1)+arm(1)+
+    (f>0.45?'<path d="M'+L(bel*0.62)+','+P(wY+bh*0.55)+' Q60,'+P(wY+bh*0.95)+' '+R(bel*0.62)+','+P(wY+bh*0.55)+'" fill="none" stroke="#000" stroke-opacity=".14" stroke-width="1.6" stroke-linecap="round"/>':'')+
+    '</svg>';
+}
+function figLabel(r){ const j=r.pbfJ||''; return '<div class="fl '+judgeClass(j)+'">'+(j?'체지방률 '+esc(j):'&nbsp;')+'</div>'; }
+
 /* ===== 화면 ===== */
 function renderTabs(){
   const t=el('tabs');
@@ -456,12 +537,13 @@ function renderHome(){
     h+='<div class="card pcard" data-go="'+esc(n)+'">'+
       '<div class="pc-top"><div><div class="pc-name"><i style="background:'+c+'"></i>'+esc(n)+'</div><div class="pc-date">'+esc((r.date||'')+' '+(r.time||''))+' · '+D.by[n].length+'회 측정</div></div>'+
       '<div class="pc-score"><div class="v" style="color:'+c+'">'+(r.score==null?'–':esc(r.score))+'</div><div class="l">인바디점수</div></div></div>'+
+      '<div class="pc-body"><div class="fig">'+bodySVG(r,c)+figLabel(r)+'</div>'+
       '<div class="grid4">'+
         '<div class="kv"><div class="l">체중</div><div class="v">'+fx(r.weight,1)+'<small>kg</small></div></div>'+
         '<div class="kv"><div class="l">골격근량</div><div class="v">'+fx(r.smm,1)+'<small>kg</small></div></div>'+
         '<div class="kv"><div class="l">체지방률</div><div class="v '+judgeClass(r.pbfJ)+'">'+fx(r.pbf,1)+'<small>%</small></div></div>'+
         '<div class="kv"><div class="l">내장지방레벨</div><div class="v '+(r.vfl!=null&&r.vfl>=10?'warn':'')+'">'+(r.vfl==null?'–':esc(r.vfl))+'</div></div>'+
-      '</div>'+
+      '</div></div>'+
       '<div class="badges">'+badge('BMI',r.bmiJ)+badge('체지방률',r.pbfJ)+'</div>'+
       '<div class="goal"><div class="gl">목표까지 남은 조절량 (용지 값)</div><div class="gv"><span>지방 <b class="'+(r.fCtl<0?'warn':'ok')+'">'+sgn(r.fCtl,1)+'kg</b></span><span>근육 <b class="'+(r.mCtl>0?'low':'ok')+'">'+sgn(r.mCtl,1)+'kg</b></span></div></div>'+
       '<span class="more">자세히 ›</span></div>';
@@ -485,6 +567,13 @@ function renderPerson(n){
     '<div class="meta">'+esc((r.date||'')+' '+(r.time||''))+'<br>'+esc([r.place,r.device].filter(Boolean).join(' · '))+'<br>'+esc([r.height!=null?r.height+'cm':'', r.age!=null?r.age+'세':'', r.sex].filter(Boolean).join(' · '))+'</div>'+
     '<div class="badges">'+badge('BMI',r.bmiJ)+badge('체지방률',r.pbfJ)+'</div></div></div></div>';
 
+  /* 체형 그림 */
+  {
+    const one=(x,cap)=>'<div class="fig">'+bodySVG(x,c,'','#151b24')+figLabel(x)+'<div class="fs">'+(cap?esc(cap)+'<br>':'')+fx(x.weight,1)+'kg · 체지방률 '+fx(x.pbf,1)+'%</div></div>';
+    h+='<div class="card"><h2>체형 그림<small>용지 값으로 그린 그림</small></h2><div class="figs">'+
+      (recs.length>=2 ? one(first,'첫 측정 '+shortDate(first.date))+one(r,'최근 '+shortDate(r.date)) : one(r,''))+
+      '</div><div class="rb-sub" style="margin-top:8px;text-align:center">체지방률·BMI·골격근량·키 값으로 모양을 정한 그림이에요(실제 모습 아님).</div></div>';
+  }
   /* 적정체중 진행률 */
   if(r.target!=null){
     const start=first.weight, tgt=r.target, cur=r.weight, total=start-tgt, done=start-cur;
