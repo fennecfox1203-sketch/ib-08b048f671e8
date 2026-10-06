@@ -58,16 +58,16 @@ header p{margin:4px 0 0;color:var(--muted);font-size:.85rem}
 .grid4{display:grid;grid-template-columns:1fr 1fr;gap:8px}
 .pc-body{display:grid;grid-template-columns:84px 1fr;gap:10px;align-items:stretch}
 .fig{display:flex;flex-direction:column;align-items:center;justify-content:flex-end;background:var(--card2);border-radius:12px;padding:6px 2px 6px}
-.fig svg{display:block;width:82px;height:141px}
+.fig svg{display:block;width:76px;height:152px}
 .fig .fl{font-size:.78rem;font-weight:800;margin-top:2px;white-space:nowrap}
 .trio{display:flex;justify-content:space-around;align-items:flex-end}
 .trio .fig{background:transparent;padding:0;cursor:pointer}
-.trio .fig svg{width:100px;height:172px}
+.trio .fig svg{width:96px;height:192px}
 .trio .nm{font-size:1.05rem;font-weight:800;margin-top:2px}
 .trio .fl{font-size:.8rem}
 .figs{display:flex;justify-content:center;gap:18px;align-items:flex-end}
 .figs .fig{background:transparent;padding:0}
-.figs .fig svg{width:130px;height:224px}
+.figs .fig svg{width:120px;height:240px}
 .figs .fig .fl{font-size:.95rem}
 .figs .fig .fs{font-size:.8rem;color:var(--muted);text-align:center;line-height:1.35}
 
@@ -138,6 +138,35 @@ footer{margin-top:22px;padding:12px 4px;color:var(--muted);font-size:.74rem;line
 footer b{color:#b9c3d1}
 footer a{color:var(--accent)}
 footer ol{margin:4px 0 8px;padding-left:18px}
+
+/* 24주 목표 */
+.gsent{font-size:1.02rem;font-weight:800;margin:-4px 0 8px}
+.gnext{display:flex;flex-wrap:wrap;gap:6px 12px;font-size:.85rem;color:var(--muted);margin-bottom:12px}
+.gnext b{color:var(--text);font-variant-numeric:tabular-nums}
+.gnext .dd{color:var(--accent);font-weight:800}
+.gtab{width:100%;border-collapse:collapse;font-size:.86rem;font-variant-numeric:tabular-nums;margin-bottom:14px}
+.gtab th,.gtab td{padding:7px 3px;border-bottom:1px solid var(--line);text-align:right;white-space:nowrap}
+.gtab th:first-child,.gtab td:first-child{text-align:left;color:var(--muted);font-weight:600}
+.gtab th{color:var(--muted);font-weight:600;font-size:.78rem}
+.gtab td.now{font-weight:800}
+.gtab td.fin{font-weight:800;color:var(--text)}
+.gm{margin:0 0 14px}
+.gm:last-of-type{margin-bottom:6px}
+.gm-h{display:flex;justify-content:space-between;align-items:baseline;gap:8px;font-size:.92rem}
+.gm-h .n{font-weight:700}
+.gm-h .st{font-size:.76rem;font-weight:800;padding:2px 8px;border-radius:999px;white-space:nowrap}
+.st.ok{background:rgba(61,214,140,.15)} .st.prog{background:rgba(124,156,255,.16);color:var(--accent)} .st.bad{background:rgba(255,107,122,.16)}
+.gm-bar{height:12px;border-radius:6px;background:#0e131a;overflow:hidden;margin:6px 0 4px;position:relative}
+.gm-bar i{display:block;height:100%;border-radius:6px}
+.gm-bar .band{position:absolute;top:0;bottom:0;background:rgba(61,214,140,.22);border-left:2px solid rgba(61,214,140,.6);border-right:2px solid rgba(61,214,140,.6)}
+.gm-bar .pt{position:absolute;top:-1px;width:4px;height:14px;border-radius:2px;margin-left:-2px}
+.gm-l{display:flex;justify-content:space-between;font-size:.74rem;color:var(--muted);font-variant-numeric:tabular-nums}
+.gnote{font-size:.72rem;color:var(--muted);margin-top:10px;line-height:1.5}
+.gline{display:flex;align-items:center;gap:8px;margin-top:10px;font-size:.8rem;color:var(--muted);font-variant-numeric:tabular-nums}
+.gline .nw{white-space:nowrap}
+.gline b{color:var(--text)}
+.gline .mini{flex:1 1 40px;min-width:28px;height:8px;border-radius:4px;background:#0e131a;overflow:hidden}
+.gline .mini i{display:block;height:100%;background:linear-gradient(90deg,#3b82f6,#3dd68c)}
 </style>
 </head>
 <body>
@@ -156,10 +185,10 @@ footer ol{margin:4px 0 8px;padding-left:18px}
     <div><b>다음 측정 입력 방법</b></div>
     <ol>
       <li>구글 시트 <b>‘인바디 기록’</b>의 <b>‘측정’</b> 탭을 엽니다<span id="sheetLink"></span>.</li>
-      <li>맨 아래 빈 줄에 <b>한 사람의 한 번 측정 = 한 줄</b>로 인바디 용지 값을 적습니다. 이름은 늘 같은 글자로, 측정일은 2026-11-06처럼, 범위는 40.0~49.0처럼 적습니다.</li>
+      <li>맨 아래 빈 줄에 <b>한 사람의 한 번 측정 = 한 줄</b>로 인바디 용지 값을 적습니다. 이름은 늘 같은 글자로, 측정일은 연-월-일 형식으로, 범위는 최소~최대 형식으로 적습니다.</li>
       <li>이 화면을 다시 열거나 🔄를 누르면 바로 반영되고, 같은 사람이 2회 이상이면 변화 그래프가 그려집니다.</li>
     </ol>
-    <div>이 화면은 인바디 용지에 적힌 값과 판정만 옮겨 보여 줍니다. · <span id="syncStatus"></span></div>
+    <div>이 화면은 인바디 용지에 적힌 값과 판정만 옮겨 보여 줍니다. 목표는 시트 ‘목표’ 탭 값(세 AI 추천 중간값 · 의학적 진단 아님). · <span id="syncStatus"></span></div>
   </footer>
 </div>
 <script>
@@ -295,7 +324,7 @@ async function fetchCsv(id, gid){
   } finally { clearTimeout(tm); }
 }
 let _cbSeq=0;
-function fetchGviz(id){
+function fetchGviz(id, tab){
   return new Promise((resolve,reject)=>{
     const cb='__inbodyCb'+(++_cbSeq)+'_'+Date.now();
     const sc=document.createElement('script');
@@ -309,7 +338,7 @@ function fetchGviz(id){
       resolve(head.some(h=>h)?[head].concat(body):body);
     };
     sc.onerror=()=>{ done(); reject(new Error('불러오기 실패')); };
-    sc.src='https://docs.google.com/spreadsheets/d/'+encodeURIComponent(id)+'/gviz/tq?tqx=out:json;responseHandler:'+cb+'&headers=1&sheet='+encodeURIComponent(TAB_NAME)+'&t='+Date.now();
+    sc.src='https://docs.google.com/spreadsheets/d/'+encodeURIComponent(id)+'/gviz/tq?tqx=out:json;responseHandler:'+cb+'&headers=1&sheet='+encodeURIComponent(tab||TAB_NAME)+'&t='+Date.now();
     document.head.appendChild(sc);
   });
 }
@@ -361,11 +390,13 @@ async function sync(){
     lsSet(LS_KEY, usedK);  /* 성공한 시트만 기억 */
     lsSet(LS_CACHE, JSON.stringify({id:usedK, at:stamp(), data}));
     state.data=data; state.sheetId=usedK;
+    if(!GOALS) GOALS=cachedGoals(usedK);
     if(hashK && usedK!==hashK){
       showAlert('주소의 시트를 찾지 못했어요', '<div>열린 주소의 #k 값('+esc(hashK.slice(0,12))+'…)으로는 시트를 불러올 수 없어서, 이 휴대폰에 저장돼 있던 시트를 대신 보여 주고 있어요. 주소가 잘렸는지 확인해 주세요.</div><div style="margin-top:6px;font-size:.85rem">사유: '+esc(hashErr&&hashErr.message||'')+'</div>');
     } else hideAlert();
     el('syncStatus').textContent='시트 최신 '+stamp();
     render();
+    refreshGoals(usedK);
   }catch(e){
     let cache=null; try{ cache=JSON.parse(lsGet(LS_CACHE)||'null'); }catch(_){}
     const canCache = cache && cache.data && (!hashK || cache.id===hashK || cache.id===savedK);
@@ -374,7 +405,7 @@ async function sync(){
       ? '주소가 중간에 잘렸거나(#k 값 일부 누락), 시트 공유가 꺼졌거나, 인터넷이 끊겼을 수 있어요. 받은 주소 전체로 다시 열어 주세요. (이 주소는 저장하지 않았어요)'
       : '인터넷 연결 또는 시트 공유 설정을 확인해 주세요.';
     if(canCache){
-      state.data=cache.data; state.sheetId=cache.id;
+      state.data=cache.data; state.sheetId=cache.id; GOALS=cachedGoals(cache.id);
       showAlert('⚠️ 시트를 불러오지 못했어요', '<div>'+tip+'</div><div style="margin-top:6px">지금 보이는 값은 <b style="display:inline;font-size:inherit">'+esc(cache.at)+'</b>에 저장해 둔 예전 값이에요.</div><div style="margin-top:6px;font-size:.85rem">사유: '+why+'</div>');
       el('syncStatus').textContent='오프라인 · 저장본 '+cache.at;
     } else {
@@ -456,7 +487,8 @@ function lineChart(title, recs, key, unit, d, color){
 }
 
 
-/* ===== 체형 그림: 체지방률·BMI·골격근량 값으로 그림 (사람별로 정해 둔 모양 없음) ===== */
+/* ===== 체형 그림 (스타일 A) ===== */
+/* 공통: 시트 값 → 체형 매개변수 (대시보드의 bodyShape와 같음) */
 function bodyShape(r){
   const cl=(v,a,b)=>Math.max(0,Math.min(1,(v-a)/(b-a)));
   const female=/여/.test(r.sex||'');
@@ -469,70 +501,281 @@ function bodyShape(r){
   return {f,m,hs};
 }
 let _figSeq=0;
-function tint(hex, k){ /* k>0: 흰색 쪽, k<0: 어둡게 */
+function tint(hex, k){
   const n=parseInt(hex.slice(1),16); let rgb=[n>>16&255,n>>8&255,n&255];
   rgb=rgb.map(v=>Math.round(k>=0? v+(255-v)*k : v*(1+k)));
   return '#'+rgb.map(v=>v.toString(16).padStart(2,'0')).join('');
 }
-function bodySVG(r, color, cls, bgc){
+const F1=v=>(+v).toFixed(1);
+/* 굵기가 변하는 팔다리 외곽선: 2차 베지어 중심선 + 양끝 둥근/평평 마감 */
+function limbPath(p0,p1,p2,w0,w1,w2,capS,capE){
+  const N=22, L=[], R=[];
+  for(let i=0;i<=N;i++){
+    const t=i/N, u=1-t;
+    const x=u*u*p0[0]+2*u*t*p1[0]+t*t*p2[0], y=u*u*p0[1]+2*u*t*p1[1]+t*t*p2[1];
+    let dx=2*u*(p1[0]-p0[0])+2*t*(p2[0]-p1[0]), dy=2*u*(p1[1]-p0[1])+2*t*(p2[1]-p1[1]);
+    const d=Math.hypot(dx,dy)||1; dx/=d; dy/=d;
+    const s=t<0.5? t*2 : (t-0.5)*2;
+    const ss=s*s*(3-2*s);
+    const w=(t<0.5? w0+(w1-w0)*ss : w1+(w2-w1)*ss)/2;
+    L.push([x-dy*w, y+dx*w]); R.push([x+dy*w, y-dx*w]);
+  }
+  const P=p=>F1(p[0])+','+F1(p[1]);
+  let d='M'+P(L[0]);
+  for(let i=1;i<=N;i++) d+=' L'+P(L[i]);
+  d+= capE!==false ? ' A'+F1(w2/2)+','+F1(w2/2)+' 0 0 0 '+P(R[N]) : ' L'+P(R[N]);
+  for(let i=N-1;i>=0;i--) d+=' L'+P(R[i]);
+  d+= capS!==false ? ' A'+F1(w0/2)+','+F1(w0/2)+' 0 0 0 '+P(L[0]) : ' L'+P(L[0]);
+  return d+' Z';
+}
+
+/* A) 플랫 피트니스 일러스트: 약 4.6등신, 티셔츠+반바지(포인트 색 두 톤), 운동화 */
+function bodySVG_A(r, color, cls){
   const {f,m,hs}=bodyShape(r);
-  const id='bf'+(++_figSeq), P=v=>v.toFixed(1), cx=60;
-  const G=164, H=146*hs;                       /* 바닥, 전체 키 */
-  const R=H*0.212-3.5*f;                         /* 큰 동그란 머리 */
-  const top=G-H, hy=top+R+3;                   /* 머리 중심 */
-  const legL=H*0.165, by0=hy+R*0.8, by1=G-legL; /* 몸통 위·아래 */
-  const bh=by1-by0;
-  const sw=11.5+2.5*m+4.5*f;                     /* 어깨 반폭 */
-  const bw=12.2+15*f;                            /* 배 반폭 */
-  const ww=9.5+9*f;                          /* 아랫배·엉덩이 반폭 */
-  const lw=8.2+7*f+0.8*m;                    /* 다리 굵기 */
-  const aw=6.8+4.2*f+1.2*m;                    /* 팔 굵기 */
-  const lx=Math.max(lw/2+1.4, ww-lw/2+0.5);
-  /* 몸통: 부드러운 콩/달걀 모양 한 덩어리 */
-  const L=x=>P(cx-x), Rr=x=>P(cx+x);
-  const yb=by0+bh*(0.55+0.06*f);                /* 배가 가장 볼록한 높이 */
-  const bot=by1+4;
-  const side=(X,rev)=>{
-    const seg=[
-      [X(sw*0.5),P(by0-2.5)],
-      [X(sw*0.85),P(by0-2.5), X(sw),P(by0+bh*0.02), X(sw),P(by0+bh*0.14)],
-      [X(sw),P(by0+bh*0.3), X(bw),P(yb-bh*0.24), X(bw),P(yb)],
-      [X(bw),P(yb+(bot-yb)*0.72), X(bw*0.62),P(bot), P(cx),P(bot)]
-    ];
-    return seg;
+  const id='fa'+(++_figSeq), cx=60, G=236, H=222*hs, T=G-H, Y=k=>T+H*k, P=F1;
+  const skin='#f3cba9', skinD='#e3ae88', hair='#2b3140';
+  const tee=tint(color,0.05), teeD=tint(color,-0.22), teeL=tint(color,0.35);
+  const shorts=tint(color,-0.45), shortsL=tint(color,-0.25);
+  /* 머리 */
+  const hry=H*0.108, hrx=hry*(0.8+0.06*f), hcy=Y(0.112);
+  /* 몸통 치수(반폭) */
+  const nk=H*(0.032+0.01*f);
+  const S=H*(0.118+0.016*m+0.03*f);       /* 어깨 */
+  const C=H*(0.098+0.012*m+0.045*f);      /* 가슴 */
+  const B=H*(0.079+0.095*f);              /* 허리/배 */
+  const Hp=H*(0.094+0.05*f);              /* 엉덩이 */
+  const yN=Y(0.218), ySh=Y(0.258), yAp=Y(0.33), yB=Y(0.435+0.02*f), yHem=Y(0.545), yCr=Y(0.585), ySb=Y(0.685);
+  /* 다리 */
+  const tw=H*(0.068+0.05*f), kw=H*(0.05+0.03*f), aw2=H*(0.031+0.012*f);
+  const lx=Math.max(tw*0.5+1, Hp-tw*0.5-0.5), kx=lx-1+1.5*f, ax=lx-0.5+0.8*f;
+  const yK=Y(0.775), yA=Y(0.948);
+  /* 팔 */
+  const uw=H*(0.05+0.03*f+0.01*m), fw=H*(0.04+0.022*f+0.006*m);
+  const side=Math.max(C, B*0.98);
+  const ex=side+uw*0.55+1.2, wx=side+fw*0.5+2.5+2*f;
+  const legs=s=>'<path d="'+limbPath([cx+s*lx,yCr-6],[cx+s*(lx*0.5+kx*0.5),(yCr+yK)/2],[cx+s*kx,yK],tw,tw*0.9,kw,true,true)+'" fill="'+skin+'"/>'+
+    '<path d="'+limbPath([cx+s*kx,yK-2],[cx+s*(kx+0.6),yK+(yA-yK)*0.32],[cx+s*ax,yA],kw,kw*1.12,aw2,true,true)+'" fill="'+skin+'"/>';
+  const arms=s=>{
+    const p0=[cx+s*(S-uw*0.62),ySh+uw*0.75], p1=[cx+s*(ex+0.5),Y(0.40)], p2=[cx+s*wx,Y(0.555)];
+    return '<path d="'+limbPath(p0,p1,p2,uw,fw*1.05,fw*0.92,true,true)+'" fill="'+skin+'"/>'+
+      '<ellipse cx="'+P(p2[0]+s*0.4)+'" cy="'+P(p2[1]+fw*0.55)+'" rx="'+P(fw*0.62)+'" ry="'+P(fw*0.78)+'" fill="'+skin+'"/>'+
+      /* 소매 */
+      (()=>{ const bz=t=>{const u=1-t;return [u*u*p0[0]+2*u*t*p1[0]+t*t*p2[0], u*u*p0[1]+2*u*t*p1[1]+t*t*p2[1]];};
+        const e=bz(0.36), q=bz(0.3); let dx=e[0]-q[0], dy=e[1]-q[1]; const dl=Math.hypot(dx,dy); dx/=dl; dy/=dl;
+        let nx=dy, ny=-dx; if(nx*s<0){ nx=-nx; ny=-ny; }       /* 바깥쪽 법선 */
+        const hw=uw/2+1.8, eo=[e[0]+nx*hw,e[1]+ny*hw], ei=[e[0]-nx*hw,e[1]-ny*hw];
+        const st=[cx+s*(S-H*0.012), ySh+H*0.006];
+        const d='M'+P(st[0])+','+P(st[1])+' Q'+P(cx+s*(S+uw*0.45))+','+P(ySh+uw*0.15)+' '+P(eo[0])+','+P(eo[1])+
+          ' L'+P(ei[0])+','+P(ei[1])+' Q'+P(cx+s*(C+0.5))+','+P(yAp-2)+' '+P(cx+s*(C-1.5))+','+P(yAp+3)+' L'+P(cx+s*(S-H*0.03))+','+P(ySh+H*0.03)+' Z';
+        return '<path d="'+d+'" fill="'+tee+'"/>'+
+          '<path d="M'+P(eo[0]-dx*1.6)+','+P(eo[1]-dy*1.6)+' L'+P(ei[0]-dx*1.6)+','+P(ei[1]-dy*1.6)+'" stroke="'+teeD+'" stroke-width="1.3" stroke-opacity=".5" stroke-linecap="round"/>'; })();
   };
-  const Ls=side(L), Rs=side(Rr);
-  const body='M'+Ls[0].join(',')+
-    ' C'+Ls[1][0]+','+Ls[1][1]+' '+Ls[1][2]+','+Ls[1][3]+' '+Ls[1][4]+','+Ls[1][5]+
-    ' C'+Ls[2][0]+','+Ls[2][1]+' '+Ls[2][2]+','+Ls[2][3]+' '+Ls[2][4]+','+Ls[2][5]+
-    ' C'+Ls[3][0]+','+Ls[3][1]+' '+Ls[3][2]+','+Ls[3][3]+' '+Ls[3][4]+','+Ls[3][5]+
-    ' C'+Rs[3][2]+','+Rs[3][3]+' '+Rs[3][0]+','+Rs[3][1]+' '+Rs[2][4]+','+Rs[2][5]+
-    ' C'+Rs[2][2]+','+Rs[2][3]+' '+Rs[2][0]+','+Rs[2][1]+' '+Rs[1][4]+','+Rs[1][5]+
-    ' C'+Rs[1][2]+','+Rs[1][3]+' '+Rs[1][0]+','+Rs[1][1]+' '+Rs[0].join(',')+' Z';
-  /* 팔: 어깨에서 비스듬히 내려오는 둥근 팔 + 동그란 손 */
-  const ang=(26+20*f)*Math.PI/180, al=H*0.2;
-  const ax0=sw-aw*0.35, ay0=by0+aw*0.55;
-  const arm=s=>{ const x1=ax0+Math.sin(ang)*al, y1=ay0+Math.cos(ang)*al;
-    const mx=(ax0+x1)/2+1.5*s*0, my=(ay0+y1)/2;
-    return '<path d="M'+P(cx+s*ax0)+','+P(ay0)+' Q'+P(cx+s*(mx+1.5))+','+P(my-1)+' '+P(cx+s*x1)+','+P(y1)+'" fill="none" stroke="url(#'+id+')" stroke-width="'+P(aw)+'" stroke-linecap="round"/>'+
-      '<circle cx="'+P(cx+s*(x1+0.6))+'" cy="'+P(y1+0.8)+'" r="'+P(aw*0.62)+'" fill="url(#'+id+')"/>'; };
-  /* 다리: 짧고 둥근 다리 + 동그란 발 */
-  const leg=s=>{ const x=cx+s*lx;
-    return '<path d="M'+P(x)+','+P(by1-6)+' L'+P(x+s*0.6)+','+P(G-4)+'" fill="none" stroke="url(#'+id+')" stroke-width="'+P(lw)+'" stroke-linecap="round"/>'+
-      '<ellipse cx="'+P(x+s*2.4)+'" cy="'+P(G-3.2)+'" rx="'+P(lw*0.5+3.2)+'" ry="'+P(3.6+0.6*f)+'" fill="url(#'+id+')"/>'; };
-  const parts = leg(-1)+leg(1)+arm(-1)+arm(1)+'<path d="'+body+'" fill="url(#'+id+')"/>'+'<circle cx="60" cy="'+P(hy)+'" r="'+P(R)+'" fill="url(#'+id+')"/>';
-  const outline = parts.replace(/url\(#[a-z0-9]+\)/g,'#ffffff');
-  const hl='<ellipse cx="'+P(cx-R*0.38)+'" cy="'+P(hy-R*0.42)+'" rx="'+P(R*0.3)+'" ry="'+P(R*0.18)+'" transform="rotate(-28 '+P(cx-R*0.38)+' '+P(hy-R*0.42)+')" fill="#fff" opacity=".45"/>'+
-    '<path d="M'+P(cx-bw*0.62)+','+P(by0+bh*0.28)+' Q'+P(cx-bw*0.74)+','+P(by0+bh*0.42)+' '+P(cx-bw*0.7)+','+P(by0+bh*0.55)+'" fill="none" stroke="#fff" stroke-opacity=".3" stroke-width="2.2" stroke-linecap="round"/>';
-  return '<svg class="'+(cls||'')+'" viewBox="10 0 100 172" role="img" aria-label="체형 그림">'+
-    '<defs><linearGradient id="'+id+'" gradientUnits="userSpaceOnUse" x1="0" y1="'+P(top)+'" x2="0" y2="'+G+'">'+
-      '<stop offset="0" stop-color="'+tint(color,.38)+'"/><stop offset=".55" stop-color="'+tint(color,.12)+'"/><stop offset="1" stop-color="'+tint(color,-.12)+'"/></linearGradient>'+
-      '<filter id="'+id+'s" x="-20%" y="-20%" width="140%" height="140%"><feDropShadow dx="0" dy="1.5" stdDeviation="1.6" flood-color="#000" flood-opacity=".35"/></filter></defs>'+
-    '<ellipse cx="60" cy="'+(G+1.5)+'" rx="'+P(20+13*f)+'" ry="3.4" fill="#000" opacity=".32"/>'+
-    '<g filter="url(#'+id+'s)" stroke-linejoin="round"><g stroke="#ffffff" stroke-width="5" opacity=".92">'+outline.replace(/fill="#ffffff"/g,'fill="#ffffff" stroke="#ffffff"')+'</g>'+parts+hl+'</g>'+
+  const L=x=>P(cx-x), R=x=>P(cx+x);
+  const half=(X,dir)=>{ /* 목 → 어깨 → 겨드랑이 → 배 → 밑단 */
+    return [
+      ['C',X(nk+H*0.025),P(yN+0.5),X(S-H*0.035),P(ySh-H*0.004),X(S),P(ySh+H*0.022)],
+      ['C',X(S+0.6),P(ySh+H*0.04),X(C),P(yAp-H*0.03),X(C),P(yAp)],
+      ['C',X(C),P(yAp+(yB-yAp)*0.45),X(B),P(yB-(yB-yAp)*0.42),X(B),P(yB)],
+      ['C',X(B),P(yB+(yHem-yB)*0.55),X(Hp+1.5),P(yHem-H*0.025),X(Hp+1.2),P(yHem)]
+    ];
+  };
+  const hl=half(L), hr=half(R);
+  let teeD_='M'+L(nk)+','+P(yN);
+  hl.forEach(c=>teeD_+=' '+c[0]+c.slice(1,3).join(',')+' '+c.slice(3,5).join(',')+' '+c.slice(5,7).join(','));
+  teeD_+=' Q'+P(cx)+','+P(yHem+H*(0.016+0.022*f))+' '+R(Hp+1.2)+','+P(yHem);
+  /* 오른쪽은 역순 */
+  const rev=[[hr[3][3],hr[3][4],hr[3][1],hr[3][2],hr[2][5],hr[2][6]],[hr[2][3],hr[2][4],hr[2][1],hr[2][2],hr[1][5],hr[1][6]],[hr[1][3],hr[1][4],hr[1][1],hr[1][2],hr[0][5],hr[0][6]],[hr[0][3],hr[0][4],hr[0][1],hr[0][2],R(nk),P(yN)]];
+  rev.forEach(c=>teeD_+=' C'+c[0]+','+c[1]+' '+c[2]+','+c[3]+' '+c[4]+','+c[5]);
+  teeD_+=' Z';
+  /* 반바지 */
+  const sbo=lx+tw*0.5+2.2, sbi=Math.max(1.2,lx-tw*0.5-1.4);
+  const shortsD='M'+L(Hp)+','+P(yHem-H*0.03)+' C'+L(Hp+1.5)+','+P(yHem+H*0.04)+' '+L(sbo+0.5)+','+P(ySb-H*0.05)+' '+L(sbo)+','+P(ySb)+
+    ' Q'+L((sbo+sbi)/2)+','+P(ySb+1.6)+' '+L(sbi)+','+P(ySb+0.8)+' Q'+P(cx)+','+P(yCr-H*0.05)+' '+R(sbi)+','+P(ySb+0.8)+
+    ' Q'+R((sbo+sbi)/2)+','+P(ySb+1.6)+' '+R(sbo)+','+P(ySb)+' C'+R(sbo+0.5)+','+P(ySb-H*0.05)+' '+R(Hp+1.5)+','+P(yHem+H*0.04)+' '+R(Hp)+','+P(yHem-H*0.03)+' Z';
+  /* 운동화 */
+  const shoe=s=>{ const X=v=>P(cx+s*v), x0=ax+0.4, h=H*0.072, ci=aw2*0.5+1.4, w=aw2*0.85+5+1.5*f;
+    /* 안쪽(몸 쪽)은 곧게, 바깥쪽 앞코는 둥글게 */
+    const d='M'+X(x0-w*0.8)+','+P(G-1.5)+
+      ' C'+X(x0-w*0.95)+','+P(G-h*0.5)+' '+X(x0-ci-0.8)+','+P(G-h*0.8)+' '+X(x0-ci)+','+P(G-h)+
+      ' L'+X(x0+ci)+','+P(G-h)+
+      ' C'+X(x0+ci+1)+','+P(G-h*0.62)+' '+X(x0+w*1.15)+','+P(G-h*0.62)+' '+X(x0+w*1.1)+','+P(G-1.5)+' Z';
+    return '<path d="'+d+'" fill="#f5f7fb"/>'+
+      '<path d="M'+X(x0-ci+0.6)+','+P(G-h*0.72)+' L'+X(x0+ci-0.6)+','+P(G-h*0.72)+' M'+X(x0-ci+0.8)+','+P(G-h*0.5)+' L'+X(x0+ci-0.2)+','+P(G-h*0.5)+'" stroke="#c4ccd9" stroke-width="1.2" stroke-linecap="round"/>'+
+      '<path d="M'+X(x0+ci+1.2)+','+P(G-h*0.5)+' Q'+X(x0+w*0.75)+','+P(G-h*0.45)+' '+X(x0+w*0.95)+','+P(G-h*0.22)+'" fill="none" stroke="'+tee+'" stroke-width="1.8" stroke-linecap="round"/>'+
+      '<path d="M'+X(x0-w*0.85)+','+P(G-4.4)+' L'+X(x0+w*1.12)+','+P(G-4.4)+' L'+X(x0+w*1.12)+','+P(G-1.6)+' Q'+X(x0+w*1.12)+','+P(G)+' '+X(x0+w*0.9)+','+P(G)+' L'+X(x0-w*0.65)+','+P(G)+' Q'+X(x0-w*0.85)+','+P(G)+' '+X(x0-w*0.85)+','+P(G-1.6)+' Z" fill="#d3d9e4"/>'; };
+  const hairD='M'+P(cx-hrx-0.8)+','+P(hcy+hry*0.12)+
+    ' C'+P(cx-hrx-2)+','+P(hcy-hry*0.9)+' '+P(cx-hrx*0.5)+','+P(hcy-hry*1.32)+' '+P(cx+hrx*0.15)+','+P(hcy-hry*1.22)+
+    ' C'+P(cx+hrx*0.9)+','+P(hcy-hry*1.2)+' '+P(cx+hrx+1.8)+','+P(hcy-hry*0.7)+' '+P(cx+hrx+0.7)+','+P(hcy+hry*0.1)+
+    ' C'+P(cx+hrx*0.85)+','+P(hcy-hry*0.3)+' '+P(cx+hrx*0.7)+','+P(hcy-hry*0.42)+' '+P(cx+hrx*0.45)+','+P(hcy-hry*0.5)+
+    ' C'+P(cx+hrx*0.05)+','+P(hcy-hry*0.42)+' '+P(cx-hrx*0.45)+','+P(hcy-hry*0.62)+' '+P(cx-hrx*0.7)+','+P(hcy-hry*0.3)+
+    ' C'+P(cx-hrx*0.85)+','+P(hcy-hry*0.15)+' '+P(cx-hrx*0.9)+','+P(hcy)+' '+P(cx-hrx-0.8)+','+P(hcy+hry*0.12)+' Z';
+  const hairHL='<path d="M'+P(cx-hrx*0.45)+','+P(hcy-hry*0.98)+' Q'+P(cx+hrx*0.1)+','+P(hcy-hry*1.12)+' '+P(cx+hrx*0.55)+','+P(hcy-hry*0.88)+'" fill="none" stroke="#4a5368" stroke-width="1.6" stroke-linecap="round"/>';
+  return '<svg class="'+(cls||'')+'" viewBox="0 0 120 240" preserveAspectRatio="xMidYMax meet" role="img" aria-label="체형 그림">'+
+    '<defs><clipPath id="'+id+'t"><path d="'+teeD_+'"/></clipPath><clipPath id="'+id+'p"><path d="'+shortsD+'"/></clipPath><radialGradient id="'+id+'g"><stop offset="0" stop-color="#000" stop-opacity=".45"/><stop offset="1" stop-color="#000" stop-opacity="0"/></radialGradient></defs>'+
+    '<ellipse cx="60" cy="'+P(G-1)+'" rx="'+P(30+16*f)+'" ry="5" fill="url(#'+id+'g)"/>'+
+    legs(-1)+legs(1)+
+    '<path d="M'+P(cx-nk)+','+P(hcy+hry*0.5)+' L'+P(cx-nk)+','+P(yN+3)+' L'+P(cx+nk)+','+P(yN+3)+' L'+P(cx+nk)+','+P(hcy+hry*0.5)+' Z" fill="'+skinD+'"/>'+
+    '<ellipse cx="'+P(cx-hrx+0.4)+'" cy="'+P(hcy+hry*0.12)+'" rx="'+P(hrx*0.17)+'" ry="'+P(hry*0.2)+'" fill="'+skinD+'"/>'+
+    '<ellipse cx="'+P(cx+hrx-0.4)+'" cy="'+P(hcy+hry*0.12)+'" rx="'+P(hrx*0.17)+'" ry="'+P(hry*0.2)+'" fill="'+skinD+'"/>'+
+    '<ellipse cx="'+cx+'" cy="'+P(hcy)+'" rx="'+P(hrx)+'" ry="'+P(hry)+'" fill="'+skin+'"/>'+
+    '<path d="'+hairD+'" fill="'+hair+'"/>'+hairHL+
+    '<path d="'+shortsD+'" fill="'+shorts+'"/>'+
+    '<g clip-path="url(#'+id+'p)"><ellipse cx="'+P(cx+Hp*1.1+2)+'" cy="'+P(ySb)+'" rx="'+P(Hp*0.5)+'" ry="'+P(H*0.2)+'" fill="#000" opacity=".16"/></g>'+
+    arms(-1)+arms(1)+
+    '<path d="'+teeD_+'" fill="'+tee+'"/>'+
+    '<g clip-path="url(#'+id+'t)"><ellipse cx="'+P(cx+B*1.15+3)+'" cy="'+P(yB)+'" rx="'+P(B*0.55+3)+'" ry="'+P(H*0.32)+'" fill="'+teeD+'" opacity=".28"/>'+
+      '</g>'+
+    '<path d="M'+L(Hp*0.98)+','+P(yHem-1.5)+' Q'+P(cx)+','+P(yHem+H*(0.016+0.022*f)-1.5)+' '+R(Hp*0.98)+','+P(yHem-1.5)+'" fill="none" stroke="'+teeD+'" stroke-width="1.4" opacity=".55"/>'+
+    '<path d="M'+L(nk+1.2)+','+P(yN-0.5)+' Q'+P(cx)+','+P(yN+H*0.035)+' '+R(nk+1.2)+','+P(yN-0.5)+'" fill="'+skinD+'" stroke="'+teeD+'" stroke-width="2"/>'+
+    shoe(-1)+shoe(1)+
     '</svg>';
 }
+
+function bodySVG(r,color,cls,bgc){ return bodySVG_A(r,color,cls); }
 function figLabel(r){ const j=r.pbfJ||''; return '<div class="fl '+judgeClass(j)+'">'+(j?'체지방률 '+esc(j):'&nbsp;')+'</div>'; }
+
+
+/* ===== 목표: 시트 '목표' 탭에서 읽음 (페이지 안에는 목표 숫자를 두지 않음) ===== */
+const GOAL_TAB = '목표';
+const GOAL_GID = '1897299590';
+const LS_GOALS = 'inbodyGoals';
+const GOAL_NOTE_DEFAULT = '세 AI(클로드·GPT·그록) 추천 중간값 · 의학적 진단 아님';
+const GOAL_METRICS = [
+  {k:'weight', n:'체중',     u:'kg', d:1, low:true},
+  {k:'smm',    n:'골격근량', u:'kg', d:1, low:false},
+  {k:'pbf',    n:'체지방률', u:'%',  d:1, low:true},
+  {k:'vfl',    n:'내장지방', u:'',   d:0, low:true},
+  {k:'score',  n:'점수',     u:'점', d:0, low:false}
+];
+const josa = w => { const c=String(w).charCodeAt(String(w).length-1)-0xAC00; return (c>=0&&c<11172&&c%28)?'은':'는'; };
+const GCOLS = {name:['이름'], when:['시점'], date:['날짜'], goal:['목표문장'],
+  weight:['체중'], smm:['골격근량','골격근'], pbf:['체지방률'], vfl:['내장지방','내장지방레벨'], score:['점수','인바디점수'],
+  key:['설정','항목'], val:['값']};
+let GOALS = null;
+
+function buildGoals(rows){
+  const hi = rows.findIndex(r => r.some(c=>normH(c)==='이름') && r.some(c=>normH(c)==='시점'));
+  if(hi<0) throw new Error('목표 머리글 없음');
+  const head = rows[hi].map(normH);
+  const I = {}; for(const k in GCOLS) I[k] = head.findIndex(h => GCOLS[k].map(normH).includes(h));
+  const LB = {}; GOAL_METRICS.forEach(m=>{ LB[m.k] = head.indexOf(normH(m.n+'표시')); });
+  const g = (r,i) => i>=0 ? String(r[i]==null?'':r[i]).trim() : '';
+  const people = {}, order = [], weeks = new Set(), cpDate = {}, set = {};
+  rows.slice(hi+1).forEach(r=>{
+    if(I.key>=0){ const k=g(r,I.key); if(k) set[normH(k)] = g(r,I.val); }
+    const n = g(r,I.name), w = g(r,I.when); if(!n || !w) return;
+    let key = null; if(/시작/.test(w)) key = 0; else { const mm=/(\d+)\s*주/.exec(w); if(mm) key = +mm[1]; }
+    if(key==null) return;
+    if(!people[n]){ people[n] = {goal:'', pts:{}, label:{}, mode:{}}; order.push(n); }
+    const P = people[n], o = {date: parseDate(g(r,I.date))};
+    GOAL_METRICS.forEach(m=>{ o[m.k] = num(g(r,I[m.k])); const L = g(r,LB[m.k]); if(L) (P.label[key] = P.label[key]||{})[m.k] = L; });
+    P.pts[key] = o;
+    if(key>0){ weeks.add(key); if(o.date && !cpDate[key]) cpDate[key] = o.date; }
+    const gs = g(r,I.goal); if(gs && !P.goal) P.goal = gs;
+  });
+  const ws = [...weeks].sort((a,b)=>a-b); if(!ws.length) throw new Error('목표 시점 없음');
+  const fin = ws[ws.length-1];
+  const names = order.filter(n => people[n].pts[0] && people[n].pts[fin]);
+  if(!names.length) throw new Error('목표 행 없음');
+  names.forEach(n=>{ const P = people[n];
+    GOAL_METRICS.forEach(m=>{
+      const band = rng(set[normH(n+m.n+'범위')]);
+      const s = P.pts[0][m.k], t = P.pts[fin][m.k];
+      if(band) P.mode[m.k] = {band};
+      else if(s!=null && t!=null && Math.abs(s-t)<1e-9) P.mode[m.k] = m.low ? {max:t} : {min:t};
+    });
+  });
+  const anyStart = people[names[0]].pts[0].date;
+  const checkpoints = ws.filter(w=>cpDate[w]).map(w=>({w, date:cpDate[w]}));
+  let remeasure = String(set[normH('재측정일')]||'').split(/[,;\n]+/).map(s=>parseDate(s.trim())).filter(Boolean).sort();
+  if(!remeasure.length) remeasure = checkpoints.map(c=>c.date);
+  const P0 = {}; names.forEach(n=>P0[n]=people[n]);
+  return {
+    period:{start: parseDate(set[normH('기간시작')]||'') || anyStart || '', end: parseDate(set[normH('기간끝')]||'') || cpDate[fin] || ''},
+    weeks: ws, fin, checkpoints, remeasure,
+    note: set[normH('안내문구')] || GOAL_NOTE_DEFAULT,
+    people: P0
+  };
+}
+async function loadGoals(id){
+  let rows = null;
+  try{ rows = await fetchCsv(id, GOAL_GID); return buildGoals(rows); }
+  catch(e){ rows = await fetchGviz(id, GOAL_TAB); return buildGoals(rows); }
+}
+function refreshGoals(id){
+  return loadGoals(id).then(gl=>{ GOALS = gl; lsSet(LS_GOALS, JSON.stringify({id, goals:gl})); })
+    .catch(()=>{ GOALS = null; })   /* 목표 탭이 없거나 못 읽으면 조용히 숨김 */
+    .then(()=>render());
+}
+function cachedGoals(id){ try{ const c = JSON.parse(lsGet(LS_GOALS)||'null'); return c && c.id===id ? c.goals : null; }catch(e){ return null; } }
+
+function todayStr(){ const d=new Date(),p=x=>String(x).padStart(2,'0'); return d.getFullYear()+'-'+p(d.getMonth()+1)+'-'+p(d.getDate()); }
+function dayDiff(a,b){ const t=s=>{const q=s.split('-').map(Number); return Date.UTC(q[0],q[1]-1,q[2]);}; return Math.round((t(b)-t(a))/86400000); }
+function dday(date){ const n=dayDiff(todayStr(),date); return n===0?'D-day':(n>0?'D-'+n:'D+'+(-n)); }
+function mdw(date){ const q=date.split('-').map(Number); const w='일월화수목금토'[new Date(Date.UTC(q[0],q[1]-1,q[2])).getUTCDay()]; return q[1]+'/'+q[2]+'('+w+')'; }
+function goalOf(n){ return GOALS && GOALS.people && GOALS.people[n] || null; }
+/* 사람별 최근 측정값(지표마다 값이 있는 마지막 측정) */
+function goalNow(n){ const recs=(state.data&&state.data.by[n])||[]; const o={};
+  GOAL_METRICS.forEach(m=>{ for(let i=recs.length-1;i>=0;i--){ if(recs[i][m.k]!=null){ o[m.k]=recs[i][m.k]; break; } } }); return o; }
+function nextMeasure(n){ const recs=state.data.by[n]||[]; const last=recs.length?(recs[recs.length-1].date||''):''; const t=todayStr();
+  return GOALS.remeasure.find(d=>d>=t && d>last) || null; }
+function nextCheckpoint(){ const t=todayStr(); return GOALS.checkpoints.find(c=>c.date>=t) || null; }
+/* 지표 하나의 진행 상황: pct(0~100), st('ok'|'prog'|'bad'), txt */
+function goalMetric(P, m, cur){
+  const s=P.pts[0][m.k], tg=P.pts[GOALS.fin][m.k], md=P.mode[m.k]||{};
+  if(s==null || tg==null) return null;
+  const R=(ok)=>({pct:ok?100:0, st:ok?'ok':'bad', txt:ok?'달성':'반대 방향', moving:false});
+  if(cur==null) return {pct:0, st:'prog', txt:'진행 중', moving:false, none:true};
+  if(md.band) return Object.assign(R(cur>=md.band[0]&&cur<=md.band[1]), {band:md.band});
+  if(md.max!=null) return R(cur<=md.max+1e-9);
+  if(md.min!=null) return R(cur>=md.min-1e-9);
+  const p=(cur-s)/(tg-s);
+  if(p>=1-1e-9) return {pct:100, st:'ok', txt:'달성', moving:true};
+  if(p<-1e-9) return {pct:0, st:'bad', txt:'반대 방향', moving:true};
+  return {pct:p*100, st:'prog', txt:'진행 중', moving:true};
+}
+function goalOverall(n){ const P=goalOf(n); if(!P) return null; const now=goalNow(n);
+  const mv=GOAL_METRICS.map(m=>goalMetric(P,m,now[m.k])).filter(x=>x && x.moving);
+  return mv.length ? mv.reduce((a,x)=>a+x.pct,0)/mv.length : 0; }
+function goalHomeLine(n){ const P=goalOf(n); if(!P) return '';
+  const pct=goalOverall(n), nm=nextMeasure(n);
+  return '<div class="gline"><span class="nw">🎯 '+GOALS.fin+'주 목표 <b>'+pct.toFixed(0)+'%</b></span><span class="mini"><i style="width:'+Math.max(0,Math.min(100,pct)).toFixed(0)+'%"></i></span><span class="nw">다음 측정 '+(nm?'<b>'+mdw(nm)+'</b> '+dday(nm):'기간 종료')+'</span></div>';
+}
+function goalCard(n, c){ const P=goalOf(n); if(!P) return '';
+  const now=goalNow(n), cp=nextCheckpoint(), nm=nextMeasure(n), pct=goalOverall(n), fin=GOALS.fin;
+  const lab=(w,k)=>(P.label[w]||{})[k];
+  const cell=(w,m)=>{ const L=lab(w,m.k); if(L) return esc(L); const v=(P.pts[w]||{})[m.k]; return v==null?'–':fx(v,m.d); };
+  const mets=GOAL_METRICS.filter(m=>P.pts[0][m.k]!=null && P.pts[fin][m.k]!=null);
+  let h='<div class="card"><h2>'+fin+'주 목표<small>'+(GOALS.period.start?shortDate(GOALS.period.start):'')+' ~ '+(GOALS.period.end?shortDate(GOALS.period.end):'')+'</small></h2>'+
+    (P.goal?'<div class="gsent" style="color:'+c+'">'+esc(P.goal)+'</div>':'')+
+    '<div class="gnext">'+(cp?'<span>다음 점검 <b>'+cp.w+'주 차 '+mdw(cp.date)+'</b> <span class="dd">'+dday(cp.date)+'</span></span>':'<span>점검 기간 종료</span>')+
+      '<span>다음 측정 '+(nm?'<b>'+mdw(nm)+'</b>':'–')+'</span><span>전체 진행 <b>'+pct.toFixed(0)+'%</b></span></div>'+
+    '<table class="gtab"><tr><th></th><th>지금</th>'+GOALS.weeks.map(w=>'<th>'+w+'주</th>').join('')+'</tr>'+
+    mets.map(m=>'<tr><td>'+m.n+'</td><td class="now">'+(now[m.k]==null?'–':fx(now[m.k],m.d))+'</td>'+GOALS.weeks.map(w=>'<td'+(w===fin?' class="fin"':'')+'>'+cell(w,m)+'</td>').join('')+'</tr>').join('')+
+    '</table>';
+  const rules=[];
+  mets.forEach(m=>{
+    const g=goalMetric(P,m,now[m.k]), s=P.pts[0][m.k], tg=P.pts[fin][m.k], u=m.u, cur=now[m.k], md=P.mode[m.k]||{}, L=lab(fin,m.k);
+    const unit=v=>v==null?'–':fx(v,m.d)+u;
+    let bar, left, right;
+    if(g.band){ const lo=g.band[0]-2, hi=g.band[1]+2, pos=v=>Math.max(0,Math.min(100,(v-lo)/(hi-lo)*100));
+      bar='<div class="gm-bar"><div class="band" style="left:'+pos(g.band[0]).toFixed(1)+'%;width:'+(pos(g.band[1])-pos(g.band[0])).toFixed(1)+'%"></div>'+(cur!=null?'<div class="pt" style="left:'+pos(cur).toFixed(1)+'%;background:'+c+'"></div>':'')+'</div>';
+      left='유지 범위 '+g.band[0]+'~'+g.band[1]+u; right='지금 '+unit(cur);
+      rules.push(m.n+josa(m.n)+' '+g.band[0]+'~'+g.band[1]+u+' 안이면 달성');
+    } else if(!g.moving){
+      const lim = md.max!=null ? md.max : md.min;
+      bar='<div class="gm-bar"><i style="width:'+g.pct.toFixed(1)+'%;background:'+(g.st==='ok'?'var(--ok)':g.st==='bad'?'var(--bad)':'transparent')+'"></i></div>';
+      left='지금 '+unit(cur); right='목표 '+(L?esc(L)+u:unit(tg))+(lim!=null?' · '+fx(lim,m.d)+(md.max!=null?' 이하':' 이상')+'면 달성':'');
+      if(lim!=null) rules.push(m.n+josa(m.n)+' '+fx(lim,m.d)+u+(md.max!=null?' 이하':' 이상')+'면 달성');
+    } else {
+      bar='<div class="gm-bar"><i style="width:'+Math.max(g.pct>0?2:0,g.pct).toFixed(1)+'%;background:linear-gradient(90deg,#3b82f6,#3dd68c)"></i></div>';
+      left='시작 '+unit(s)+' → 지금 '+unit(cur); right=g.pct.toFixed(0)+'% · 목표 '+unit(tg)+(L?' ('+esc(L)+')':'');
+    }
+    h+='<div class="gm"><div class="gm-h"><span class="n">'+m.n+'</span><span class="st '+g.st+'">'+g.txt+'</span></div>'+bar+'<div class="gm-l"><span>'+left+'</span><span>'+right+'</span></div></div>';
+  });
+  h+='<div class="gnote">진행률은 시작값에서 최근 측정값까지 '+fin+'주 목표 쪽으로 간 비율이에요'+(rules.length?' ('+esc(rules.join(', '))+')':'')+'. 재측정: '+GOALS.remeasure.map(d=>shortDate(d)).join(' · ')+'<br>'+esc(GOALS.note)+' · 목표 값은 시트 ‘목표’ 탭에서 고칠 수 있어요.</div></div>';
+  return h;
+}
 
 /* ===== 화면 ===== */
 function renderTabs(){
@@ -561,6 +804,7 @@ function renderHome(){
         '<div class="kv"><div class="l">내장지방레벨</div><div class="v '+(r.vfl!=null&&r.vfl>=10?'warn':'')+'">'+(r.vfl==null?'–':esc(r.vfl))+'</div></div>'+
       '</div></div>'+
       '<div class="badges">'+badge('BMI',r.bmiJ)+badge('체지방률',r.pbfJ)+'</div>'+
+      goalHomeLine(n)+
       '<div class="goal"><div class="gl">목표까지 남은 조절량 (용지 값)</div><div class="gv"><span>지방 <b class="'+(r.fCtl<0?'warn':'ok')+'">'+sgn(r.fCtl,1)+'kg</b></span><span>근육 <b class="'+(r.mCtl>0?'low':'ok')+'">'+sgn(r.mCtl,1)+'kg</b></span></div></div>'+
       '<span class="more">자세히 ›</span></div>';
   });
@@ -582,6 +826,9 @@ function renderPerson(n){
   let h='<div class="card"><div class="hero">'+donut(r.score,c)+'<div><div class="nm">'+esc(n)+'</div>'+
     '<div class="meta">'+esc((r.date||'')+' '+(r.time||''))+'<br>'+esc([r.place,r.device].filter(Boolean).join(' · '))+'<br>'+esc([r.height!=null?r.height+'cm':'', r.age!=null?r.age+'세':'', r.sex].filter(Boolean).join(' · '))+'</div>'+
     '<div class="badges">'+badge('BMI',r.bmiJ)+badge('체지방률',r.pbfJ)+'</div></div></div></div>';
+
+  /* 24주 목표 */
+  h+=goalCard(n,c);
 
   /* 체형 그림 */
   {
