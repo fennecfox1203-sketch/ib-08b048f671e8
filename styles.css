@@ -145,11 +145,10 @@ h1 {
 .bodyfig {
   position: relative;
   height: calc(var(--fig-h, 168px) * var(--h, 1));
-  width: calc(var(--fig-w, 69px) * var(--h, 1));
+  width: calc(var(--fig-h, 168px) * var(--h, 1) * var(--aw, 0.481));
   flex: 0 0 auto;
   --accent: #7c9cff;
 }
-.trio .bodyfig, .figs .bodyfig { animation: bf-float 3.8s ease-in-out infinite; }
 .bodyfig .bf-glow {
   position: absolute;
   left: 14%;
@@ -161,13 +160,18 @@ h1 {
   opacity: .28;
   pointer-events: none;
 }
-.bodyfig .bf-stack {
+.bodyfig .bf-scale {
   position: absolute;
   inset: 0;
   transform: scaleX(var(--sx, 1));
   transform-origin: 50% 100%;
 }
-.bodyfig .bf-pic { position: absolute; inset: 0; margin: 0; }
+.bodyfig .bf-anim {
+  position: absolute;
+  inset: 0;
+  animation-delay: var(--phase, 0s);
+}
+.bodyfig .bf-pic { position: absolute; inset: 0; margin: 0; z-index: 1; }
 .bodyfig .bf-pic img {
   position: absolute;
   left: 50%;
@@ -179,21 +183,102 @@ h1 {
   display: block;
   -webkit-user-drag: none;
 }
-.bodyfig .bf-over img {
-  -webkit-mask-image: var(--bf-mask);
-  mask-image: var(--bf-mask);
-  -webkit-mask-repeat: no-repeat;
-  mask-repeat: no-repeat;
-  -webkit-mask-position: 0 0;
-  mask-position: 0 0;
-  -webkit-mask-size: 100% 100%;
-  mask-size: 100% 100%;
-  -webkit-mask-mode: alpha;
-  mask-mode: alpha;
+.pose-flex .bf-anim { animation: pose-flex 2.8s ease-in-out infinite; transform-origin: 50% 100%; }
+.pose-jog .bf-anim { animation: pose-jog 2.4s ease-in-out infinite; transform-origin: 50% 100%; }
+.pose-wave .bf-anim { animation: pose-sway 3.2s ease-in-out infinite; transform-origin: 50% 100%; }
+.pose-donut .bf-anim { animation: pose-sway 3.2s ease-in-out infinite; transform-origin: 50% 100%; }
+.pose-poke .bf-anim { animation: pose-squish 3s ease-in-out infinite; transform-origin: 50% 64%; }
+.pose-hug .bf-anim { animation: pose-shy 3.4s ease-in-out infinite; transform-origin: 50% 100%; }
+.pose-flex .bf-anim,
+.pose-jog .bf-anim,
+.pose-wave .bf-anim,
+.pose-donut .bf-anim,
+.pose-poke .bf-anim,
+.pose-hug .bf-anim { animation-delay: var(--phase, 0s); }
+.pose-wave .bf-fx,
+.pose-donut .bf-fx {
+  animation-delay: var(--phase, 0s);
 }
-@keyframes bf-float {
-  0%, 100% { transform: translateY(0); }
-  50% { transform: translateY(-2px); }
+.pose-wave .bf-fx {
+  z-index: 2;
+  transform-origin: var(--joint-x, 35%) var(--joint-y, 27%);
+  animation: pose-wave 2.6s ease-in-out infinite;
+  animation-delay: var(--phase, 0s);
+}
+.pose-donut .bf-fx {
+  z-index: 0;
+  transform-origin: var(--fx-x, 80%) var(--fx-y, 52%);
+  animation: pose-peek 3.2s ease-in-out infinite;
+  animation-delay: var(--phase, 0s);
+}
+.spark {
+  position: absolute;
+  z-index: 4;
+  width: 7%;
+  height: 7%;
+  margin: -3.5% 0 0 -3.5%;
+  background: #ffe36b;
+  clip-path: polygon(50% 0, 61% 35%, 98% 35%, 68% 57%, 79% 91%, 50% 70%, 21% 91%, 32% 57%, 2% 35%, 39% 35%);
+  pointer-events: none;
+  animation: pose-twinkle 2.6s ease-in-out infinite;
+}
+.blush {
+  position: absolute;
+  z-index: 4;
+  width: 9%;
+  height: 5%;
+  margin: -2.5% 0 0 -4.5%;
+  border-radius: 50%;
+  background: radial-gradient(ellipse at center, rgba(255, 120, 146, .8), rgba(255, 120, 146, 0) 72%);
+  pointer-events: none;
+  animation: pose-blush 3.2s ease-in-out infinite;
+  animation-delay: var(--phase, 0s);
+}
+.pose-hug .blush { animation-duration: 3.4s; }
+.pose-poke .blush { animation-duration: 3s; }
+@keyframes pose-flex {
+  0%, 100% { transform: translateY(0) rotate(0deg) scale(1); }
+  40% { transform: translateY(-2px) rotate(-1.5deg) scale(1.03); }
+  58% { transform: translateY(-1px) rotate(0.6deg) scale(1.012); }
+}
+@keyframes pose-twinkle {
+  0%, 100% { opacity: .25; transform: scale(.8) rotate(-12deg); }
+  50% { opacity: 1; transform: scale(1.15) rotate(14deg); }
+}
+@keyframes pose-jog {
+  0%, 100% { transform: translateY(0) rotate(0deg); }
+  18% { transform: translateY(-6px) rotate(-2.2deg); }
+  36% { transform: translateY(0) rotate(0deg); }
+  58% { transform: translateY(-4px) rotate(2deg); }
+  76% { transform: translateY(0) rotate(0deg); }
+}
+@keyframes pose-sway {
+  0%, 100% { transform: rotate(-1.6deg); }
+  50% { transform: rotate(1.8deg); }
+}
+@keyframes pose-wave {
+  0%, 100% { transform: rotate(0deg); }
+  22% { transform: rotate(-16deg); }
+  48% { transform: rotate(13deg); }
+  72% { transform: rotate(-9deg); }
+  86% { transform: rotate(5deg); }
+}
+@keyframes pose-peek {
+  0%, 100% { transform: translate(0, 1px) rotate(-6deg); }
+  42% { transform: translate(7px, -2px) rotate(12deg); }
+  64% { transform: translate(2px, 0) rotate(2deg); }
+}
+@keyframes pose-squish {
+  0%, 70%, 100% { transform: scale(1, 1); }
+  36% { transform: scale(1.055, 0.96); }
+}
+@keyframes pose-shy {
+  0%, 100% { transform: rotate(-2deg); }
+  50% { transform: rotate(2.4deg); }
+}
+@keyframes pose-blush {
+  0%, 100% { opacity: .2; transform: scale(.92); }
+  50% { opacity: .9; transform: scale(1.08); }
 }
 
 .kv { background: var(--card2); border-radius: 12px; padding: 10px 12px; }
@@ -362,5 +447,7 @@ h1 {
 }
 @media (prefers-reduced-motion: reduce) {
   .icon-btn:active { transform: none; }
-  .trio .bodyfig, .figs .bodyfig { animation: none; }
+  .bf-anim, .bf-fx, .blush, .spark { animation: none !important; }
+  .spark { opacity: .85; }
+  .blush { opacity: .45; }
 }

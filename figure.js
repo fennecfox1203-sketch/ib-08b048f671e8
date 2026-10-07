@@ -1,4 +1,4 @@
-/* 체형 그림. 10~35% 앵커 그림을 1%마다 섞고, 키는 같이 있는 사람 중 가장 큰 키에 맞춘다. */
+/* 체형 그림. 가까운 포즈 한 장을 고르고, 1%는 가로 비율로, 키는 같이 있는 사람 중 가장 큰 키로 맞춘다. */
 (function (root) {
 'use strict';
 function bodyShape(r) {
@@ -26,17 +26,24 @@ function bodyBand(pbf) {
   const t = (raw - lo) / 5;
   return { lo: lo, hi: hi, t: t, scaleX: 1 + 0.03 * Math.sin(Math.PI * t), pbf: raw };
 }
-var ASSET_V = '20261007';
-function asset(n, ext) {
-  return 'img/body/bf' + n + '.' + ext + '?v=' + ASSET_V;
+var ASSET_V = '20261007b';
+var POSE = { 10: 'flex', 15: 'jog', 20: 'wave', 25: 'donut', 30: 'poke', 35: 'hug' };
+var SPARKS = [[27.1, 3.9], [16.6, 7.5], [41.6, 15.5], [10.0, 12.4]];
+var BLUSH = {
+  poke: [[42.7, 14.8], [53.3, 15.9]],
+  hug: [[41.4, 15.0], [52.7, 15.9]]
+};
+function nearest(band) {
+  if (band.lo === band.hi || band.t < 0.5) return band.lo;
+  return band.hi;
 }
-function picture(n, role, opacity, maskN) {
-  const attrs = role === 'over'
-    ? ' class="bf-pic bf-over" style="opacity:' + opacity.toFixed(3) + ';--bf-mask:url(\'' + asset(maskN, 'png') + '\')"'
-    : ' class="bf-pic bf-base"';
-  return '<picture' + attrs + '>' +
-    '<source srcset="' + asset(n, 'webp') + '" type="image/webp">' +
-    '<img src="' + asset(n, 'png') + '" alt="" draggable="false">' +
+function asset(file, ext) {
+  return 'img/body/' + file + '.' + ext + '?v=' + ASSET_V;
+}
+function picture(file, cls) {
+  return '<picture class="bf-pic ' + cls + '">' +
+    '<source srcset="' + asset(file, 'webp') + '" type="image/webp">' +
+    '<img src="' + asset(file, 'png') + '" alt="" draggable="false">' +
     '</picture>';
 }
 function bodySVG(r, color, cls, maxCm) {
@@ -46,19 +53,32 @@ function bodySVG(r, color, cls, maxCm) {
   const cm = rec.height ? +rec.height : 0;
   const max = maxCm && +maxCm > 0 ? +maxCm : (cm || 1);
   const h = cm ? Math.max(0.72, Math.min(1, cm / max)) : 1;
+  const anchor = nearest(band);
+  const pose = POSE[anchor] || 'wave';
+  const phase = -(((Math.round((band.pbf || 20) * 10) + Math.round(cm || 0)) * 17) % 32) / 10;
   const aria = '체형 그림' + (rec.pbf != null ? ', 체지방률 ' + (+rec.pbf).toFixed(1) + '%' : '');
-  /* 가까운 앵커를 불투명하게 깔고, 먼 앵커만 그 실루엣 안에 겹친다. */
-  let pics;
-  if (band.hi === band.lo || band.t <= 0.001) pics = picture(band.lo, 'base');
-  else if (band.t >= 0.999) pics = picture(band.hi, 'base');
-  else if (band.t < 0.5) pics = picture(band.lo, 'base') + picture(band.hi, 'over', band.t, band.lo);
-  else pics = picture(band.hi, 'base') + picture(band.lo, 'over', 1 - band.t, band.hi);
-  return '<div class="bodyfig ' + (cls || '') + '" role="img" aria-label="' + aria + '"' +
+  let pics = picture('pose_bf' + anchor, 'bf-base');
+  if (anchor === 25) pics = picture('pose_bf25_fx', 'bf-fx') + pics;
+  if (anchor === 20) pics += picture('pose_bf20_fx', 'bf-fx');
+  let extra = '';
+  if (anchor === 10) {
+    extra = SPARKS.map(function (p, i) {
+      return '<i class="spark" style="left:' + p[0].toFixed(1) + '%;top:' + p[1].toFixed(1) +
+        '%;animation-delay:calc(var(--phase) + ' + (i * 0.32).toFixed(2) + 's)"></i>';
+    }).join('');
+  } else if (BLUSH[pose]) {
+    extra = BLUSH[pose].map(function (p) {
+      return '<i class="blush" style="left:' + p[0].toFixed(1) + '%;top:' + p[1].toFixed(1) + '%"></i>';
+    }).join('');
+  }
+  return '<div class="bodyfig pose-' + pose + ' ' + (cls || '') + '" role="img" aria-label="' + aria + '"' +
     ' data-pbf="' + (rec.pbf == null ? '' : (+rec.pbf).toFixed(1)) + '"' +
+    ' data-pose="' + pose + '" data-anchor="' + anchor + '"' +
     ' data-lo="' + band.lo + '" data-hi="' + band.hi + '" data-t="' + band.t.toFixed(3) + '"' +
     ' data-sx="' + band.scaleX.toFixed(4) + '" data-h="' + h.toFixed(4) + '"' +
-    ' style="--accent:' + accent + ';--h:' + h.toFixed(4) + ';--sx:' + band.scaleX.toFixed(4) + '">' +
-    '<div class="bf-glow"></div><div class="bf-stack">' + pics + '</div></div>';
+    ' style="--accent:' + accent + ';--h:' + h.toFixed(4) + ';--sx:' + band.scaleX.toFixed(4) +
+    ';--aw:0.481;--phase:' + phase.toFixed(2) + 's;--joint-x:34.7%;--joint-y:27%;--fx-x:79.9%;--fx-y:51.6%">' +
+    '<div class="bf-glow"></div><div class="bf-scale"><div class="bf-anim">' + pics + extra + '</div></div></div>';
 }
   root.Inbody = root.Inbody || {};
   root.Inbody.bodySVG = bodySVG;
