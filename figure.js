@@ -26,12 +26,17 @@ function bodyBand(pbf) {
   const t = (raw - lo) / 5;
   return { lo: lo, hi: hi, t: t, scaleX: 1 + 0.03 * Math.sin(Math.PI * t), pbf: raw };
 }
-function picture(n, opacity) {
-  const base = 'img/body/bf' + n;
-  const op = opacity >= 0.999 ? '' : ' style="opacity:' + opacity.toFixed(3) + '"';
-  return '<picture class="bf-pic"' + op + '>' +
-    '<source srcset="' + base + '.webp" type="image/webp">' +
-    '<img src="' + base + '.png" alt="" draggable="false">' +
+var ASSET_V = '20261007';
+function asset(n, ext) {
+  return 'img/body/bf' + n + '.' + ext + '?v=' + ASSET_V;
+}
+function picture(n, role, opacity, maskN) {
+  const attrs = role === 'over'
+    ? ' class="bf-pic bf-over" style="opacity:' + opacity.toFixed(3) + ';--bf-mask:url(\'' + asset(maskN, 'png') + '\')"'
+    : ' class="bf-pic bf-base"';
+  return '<picture' + attrs + '>' +
+    '<source srcset="' + asset(n, 'webp') + '" type="image/webp">' +
+    '<img src="' + asset(n, 'png') + '" alt="" draggable="false">' +
     '</picture>';
 }
 function bodySVG(r, color, cls, maxCm) {
@@ -42,8 +47,12 @@ function bodySVG(r, color, cls, maxCm) {
   const max = maxCm && +maxCm > 0 ? +maxCm : (cm || 1);
   const h = cm ? Math.max(0.72, Math.min(1, cm / max)) : 1;
   const aria = '체형 그림' + (rec.pbf != null ? ', 체지방률 ' + (+rec.pbf).toFixed(1) + '%' : '');
-  let pics = picture(band.lo, band.hi === band.lo ? 1 : 1 - band.t);
-  if (band.hi !== band.lo && band.t > 0.001) pics += picture(band.hi, band.t);
+  /* 가까운 앵커를 불투명하게 깔고, 먼 앵커만 그 실루엣 안에 겹친다. */
+  let pics;
+  if (band.hi === band.lo || band.t <= 0.001) pics = picture(band.lo, 'base');
+  else if (band.t >= 0.999) pics = picture(band.hi, 'base');
+  else if (band.t < 0.5) pics = picture(band.lo, 'base') + picture(band.hi, 'over', band.t, band.lo);
+  else pics = picture(band.hi, 'base') + picture(band.lo, 'over', 1 - band.t, band.hi);
   return '<div class="bodyfig ' + (cls || '') + '" role="img" aria-label="' + aria + '"' +
     ' data-pbf="' + (rec.pbf == null ? '' : (+rec.pbf).toFixed(1)) + '"' +
     ' data-lo="' + band.lo + '" data-hi="' + band.hi + '" data-t="' + band.t.toFixed(3) + '"' +

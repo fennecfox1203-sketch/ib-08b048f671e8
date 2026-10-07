@@ -113,7 +113,17 @@ assert.ok(ratio > 0.15 && ratio < 0.4, 'empty month keeps calendar space ' + rat
 const round = data.by.B[data.by.B.length - 1];
 const fig = I.bodySVG(round, '#c08cff', '', 183);
 assert.ok(fig.indexOf('bodyfig') >= 0 && fig.indexOf('NaN') < 0, 'silhouette');
-assert.ok(fig.indexOf('img/body/bf30.webp') >= 0, '30% anchor');
+assert.ok(fig.indexOf('img/body/bf30.webp?v=20261007') >= 0, '30% anchor');
+assert.ok(/<picture class="bf-pic bf-base">/.test(fig), 'nearer anchor stays opaque');
+assert.ok(/class="bf-pic bf-over" style="opacity:0\.160/.test(fig), 'only the far anchor fades');
+assert.ok(/--bf-mask:url\('img\/body\/bf30\.png\?v=20261007'\)/.test(fig), 'edge follows the nearer silhouette');
+const mid = I.bodySVG({ pbf: 23, height: 180 }, '#7c9cff', '', 180);
+assert.ok(/bf-base">[\s\S]*bf25\.webp/.test(mid), '23% silhouette is the nearer 25% anchor');
+assert.ok(/bf-over" style="opacity:0\.400/.test(mid) && /bf20\.webp/.test(mid), '23% keeps 40% of bf20 inside that edge');
+const exact = I.bodySVG({ pbf: 20, height: 180 }, '#7c9cff', '', 180);
+assert.ok(exact.indexOf('bf-over') < 0 && /bf20\.webp\?v=20261007/.test(exact), 'exact anchor is one opaque picture');
+const html = fs.readFileSync(path.join(root, 'index.html'), 'utf8');
+assert.ok(html.indexOf('styles.css?v=20261007') >= 0 && html.indexOf('app.js?v=20261007') >= 0, 'cache bust');
 const shape = I.bodyShape(round);
 assert.ok(shape.f > 0.85, 'high body fat is round ' + shape.f);
 assert.ok(shape.m < 0.7, 'muscle stays skeletal ' + shape.m);
