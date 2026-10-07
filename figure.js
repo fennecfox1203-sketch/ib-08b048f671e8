@@ -74,7 +74,7 @@ function bodySVG_A2(r, color, cls) {
   const yHem = ySh + torsoH;
   const yHip = yHem - 2;
   const sh = 17.2 + 7.4 * def + 0.6 * s.m * (1 - f) - 2.2 * fem;
-  const waist = 10.4 + 13.6 * f - 2.8 * def + 0.4 * fem;
+  const waist = 9.2 + 16.2 * f - 3.2 * def + 0.5 * fem;
   const hem = Math.max(waist * 0.94 + 1.2 * f + 1.8 * fem, waist - 1);
   const thigh = 15.2 + 10.5 * f + 1.4 * def;
   const kneeW = 9.4 + 4.2 * f + 0.4 * def;
@@ -129,13 +129,13 @@ function bodySVG_A2(r, color, cls) {
     ' C' + C([cx - outBot + 1, yHip + 4, cx - outBot + 2, yShort - 4, cx - outBot + 3.2, yShort - 0.4]);
   function arm(side) {
     const sign = side;
-    const edge = Math.max(sh, hem);
-    const x0 = cx + sign * (sh - 3.2);
-    const y0 = ySh + 7;
-    const x1 = cx + sign * (edge + 1.6 + 1.4 * f);
-    const y1 = ySh + 28;
-    const x2 = cx + sign * (edge - 0.4 + 0.8 * f);
-    const y2 = yHem - 2;
+    const edge = Math.max(sh * 0.92, hem);
+    const x0 = cx + sign * (sh - 4);
+    const y0 = ySh + 8;
+    const x1 = cx + sign * (edge + 0.2);
+    const y1 = ySh + 26;
+    const x2 = cx + sign * (edge - 2.2);
+    const y2 = yHem + 2;
     return limbPath([x0, y0], [x1, y1], [x2, y2], armU, (armU + armL) * 0.48, armL, false, true);
   }
   function leg(side) {

@@ -284,7 +284,7 @@
     h += goalCard(name, c);
     const one = function (x, cap) {
       return '<div class="fig">' + I.bodySVG(x, c) + figLabel(x) + '<div class="fs">' + (cap ? I.esc(cap) + '<br>' : '') +
-        I.fx(x.weight, 1) + 'kg · 체지방률 ' + I.fx(x.pbf, 1) + '%</div></div>';
+        I.fx(x.weight, 1) + 'kg</div></div>';
     };
     const dated = recs.filter(function (x) { return x.date; });
     const early = dated[0] || first;

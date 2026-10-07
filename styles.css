@@ -134,7 +134,8 @@ h1 {
 .figs { display: flex; justify-content: center; gap: 8px; align-items: flex-end; }
 .figs .fig { background: transparent; padding: 0; min-width: 0; }
 .figs .fig svg { width: 108px; height: 216px; }
-.figs.figs-3 .fig svg { width: 84px; height: 168px; }
+.figs.figs-3 .fig { width: 30%; }
+.figs.figs-3 .fig svg { width: 78px; height: 156px; }
 .figs .fig .fl { font-size: .92rem; }
 .figs.figs-3 .fig .fl { font-size: .78rem; }
 .figs .fig .fs { font-size: .78rem; color: var(--muted); text-align: center; line-height: 1.35; }
@@ -317,7 +318,7 @@ h1 {
   .donut { width: 104px; height: 104px; }
   .trio .fig svg { width: 78px; height: 156px; }
   .figs .fig svg { width: 96px; height: 192px; }
-  .figs.figs-3 .fig svg { width: 72px; height: 144px; }
+  .figs.figs-3 .fig svg { width: 68px; height: 136px; }
   .figs .fig .fs { font-size: .68rem; }
 }
 @media (prefers-reduced-motion: reduce) {
