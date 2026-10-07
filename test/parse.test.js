@@ -113,9 +113,18 @@ assert.ok(ratio > 0.15 && ratio < 0.4, 'empty month keeps calendar space ' + rat
 const round = data.by.B[data.by.B.length - 1];
 const fig = I.bodySVG(round, '#c08cff');
 assert.ok(fig.indexOf('<svg') >= 0 && fig.indexOf('NaN') < 0, 'silhouette');
+assert.ok(fig.indexOf('pose') >= 0, 'idle pose group');
 const shape = I.bodyShape(round);
 assert.ok(shape.f > 0.85, 'high body fat is round ' + shape.f);
 assert.ok(shape.m < 0.7, 'muscle stays skeletal ' + shape.m);
+const leanS = I.bodyShape({ pbf: 12, bmi: 22, smm: 36, height: 180, sex: '남', weight: 72 });
+const midS = I.bodyShape({ pbf: 20, bmi: 24, smm: 32, height: 175, sex: '남', weight: 73 });
+assert.ok(leanS.f < midS.f && midS.f < shape.f, '12% < 20% < 30% ' + [leanS.f, midS.f, shape.f].join(','));
+assert.ok(leanS.def > shape.def, 'definition shows when lean');
+const leanFig = I.bodySVG({ pbf: 12, bmi: 22, smm: 36, height: 180, sex: '남' }, '#7c9cff');
+assert.ok(leanFig.indexOf('NaN') < 0 && !/눈|입|eye|mouth/.test(leanFig), 'faceless');
+assert.ok(data.by.A[data.by.A.length - 1].pbf < 14, 'demo A is the lean card');
+assert.ok(data.by.C[data.by.C.length - 1].pbf === 20, 'demo C is the mid card');
 
 ['demo.js', 'app.js', 'index.html', 'charts.js', 'figure.js', 'styles.css', 'parse.js'].forEach(function (file) {
   const text = fs.readFileSync(path.join(root, file), 'utf8');

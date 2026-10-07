@@ -44,9 +44,24 @@
   }
   function latest(name) { const a = state.data.by[name]; return a[a.length - 1]; }
   function goalOf(name) { return (state.goals && state.goals.people && state.goals.people[name]) || null; }
+  function goalBody(name, base) {
+    const P = goalOf(name);
+    const goals = state.goals;
+    if (!P || !goals || goals.fin == null || !base) return null;
+    const g = P.pts[goals.fin];
+    if (!g || (g.weight == null && g.pbf == null && g.smm == null)) return null;
+    const weight = g.weight != null ? g.weight : base.weight;
+    const pbf = g.pbf != null ? g.pbf : base.pbf;
+    const smm = g.smm != null ? g.smm : base.smm;
+    const height = base.height;
+    const bmi = height && weight != null ? weight / Math.pow(height / 100, 2) : base.bmi;
+    return { sex: base.sex, height: height, weight: weight, pbf: pbf, smm: smm, bmi: bmi };
+  }
   function figLabel(r) {
     const j = r.pbfJ || '';
-    return '<div class="fl ' + I.judgeClass(j) + '">' + (j ? '체지방률 ' + I.esc(j) : '') + '</div>';
+    const pct = r.pbf != null ? I.fx(r.pbf, 1) + '%' : '';
+    const text = [pct, j].filter(Boolean).join(' · ');
+    return '<div class="fl ' + I.judgeClass(j) + '">' + (text ? I.esc(text) : '') + '</div>';
   }
   function badge(label, j) {
     if (!j) return '';
@@ -144,7 +159,7 @@
 
   function renderHome() {
     const D = state.data;
-    let h = '<div class="card"><h2>세 사람 체형<small>용지 값으로 그린 그림</small></h2><div class="trio">' +
+    let h = '<div class="card"><h2>세 사람 체형<small>체지방률로 그린 그림</small></h2><div class="trio">' +
       D.people.map(function (n) {
         const r = latest(n);
         return '<button type="button" class="fig" data-go="' + I.esc(n) + '">' + I.bodySVG(r, colorOf(n)) +
@@ -269,13 +284,18 @@
     h += goalCard(name, c);
     const one = function (x, cap) {
       return '<div class="fig">' + I.bodySVG(x, c) + figLabel(x) + '<div class="fs">' + (cap ? I.esc(cap) + '<br>' : '') +
-        I.fx(x.weight, 1) + 'kg · 체지방률 ' + I.fx(x.pbf, 1) + '%</div></div>';
+        I.fx(x.weight, 1) + 'kg</div></div>';
     };
     const dated = recs.filter(function (x) { return x.date; });
     const early = dated[0] || first;
-    h += '<div class="card"><h2>체형 그림<small>스타일 A</small></h2><div class="figs">' +
-      (recs.length >= 2 ? one(early, '첫 측정 ' + I.shortDate(early.date)) + one(r, '최근 ' + I.shortDate(r.date)) : one(r, '')) +
-      '</div><div class="rb-sub" style="margin-top:8px;text-align:center">체지방률·BMI·골격근량·키로 모양을 정했습니다. 체지방이 높으면 둥글고, 근육은 어깨 너비만 바꿉니다.</div></div>';
+    const goalFig = goalBody(name, r);
+    const shots = [];
+    if (recs.length >= 2) shots.push(one(early, '처음'));
+    shots.push(one(r, '지금'));
+    if (goalFig) shots.push(one(goalFig, (state.goals.fin || 24) + '주 목표'));
+    h += '<div class="card"><h2>체형 그림<small>' + (goalFig ? '처음에서 목표로' : '스타일 A') + '</small></h2><div class="figs' + (shots.length > 2 ? ' figs-3' : '') + '">' +
+      shots.join('<div class="fig-to" aria-hidden="true">→</div>') +
+      '</div><div class="rb-sub" style="margin-top:8px;text-align:center">체지방률이 낮으면 어깨가 넓고 허리가 잘록합니다. 높으면 둥글게 그리되, 근육 선은 낮을 때만 약하게 넣습니다.</div></div>';
     if (r.target != null && first.weight != null) {
       const start = first.weight;
       const tgt = r.target;
