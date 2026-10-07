@@ -179,6 +179,18 @@ h1 {
   display: block;
   -webkit-user-drag: none;
 }
+.bodyfig .bf-over img {
+  -webkit-mask-image: var(--bf-mask);
+  mask-image: var(--bf-mask);
+  -webkit-mask-repeat: no-repeat;
+  mask-repeat: no-repeat;
+  -webkit-mask-position: center bottom;
+  mask-position: center bottom;
+  -webkit-mask-size: auto 100%;
+  mask-size: auto 100%;
+  -webkit-mask-mode: alpha;
+  mask-mode: alpha;
+}
 @keyframes bf-float {
   0%, 100% { transform: translateY(0); }
   50% { transform: translateY(-2px); }
