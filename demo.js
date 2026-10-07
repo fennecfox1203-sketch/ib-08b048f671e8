@@ -119,24 +119,24 @@
   function buildInbodyDemo() {
     const measureRows = [MEASURE_HEAD];
     measureRows.push(personRow(A, {
-      name: 'A', date: '2026년 8월 12일', time: '오전 9:05', weight: '84.0', weightNum: 84, smm: '３４.２', pbfNum: 26,
+      name: 'A', date: '2026년 8월 12일', time: '오전 9:05', weight: '84.0', weightNum: 84, smm: '３４.２', pbfNum: 16.8,
       score: 68, tbw: '44.1', protein: '12.0', mineral: '3.80', wCtl: '-10.0', fCtl: '−8.2', mCtl: '+0.8',
-      bmiJ: '비만', pbfJ: '경도비만', whr: '0.92', vfl: 12, bmr: 1680, obes: 118, kcal: 2100,
+      bmiJ: '비만', pbfJ: '표준', whr: '0.92', vfl: 12, bmr: 1680, obes: 118, kcal: 2100,
       mL: '표준', mR: '표준', mT: '표준', mLL: '표준', mRL: '표준',
       fL: '표준이상', fR: '표준이상', fT: '표준이상', fLL: '표준', fRL: '표준', badminton: 180, memo: '예시 첫 측정'
     }));
     measureRows.push(personRow(A, {
-      name: 'A', date: '2026. 8. 26', time: '19:10', weight: '82.4 kg', weightNum: 82.4, smm: '34.3', pbfNum: 25.1,
-      score: 70, tbw: '44.0', protein: '12.0', mineral: '3.82', wCtl: '-8.4', fCtl: '-7.0', mCtl: '+0.6',
-      bmiJ: '비만', pbfJ: '경도비만', whr: '0.91', vfl: 11, bmr: 1670, obes: 115, kcal: 2050,
+      name: 'A', date: '2026. 8. 26', time: '19:10', weight: '82.4 kg', weightNum: 82.4, smm: '34.3', pbfNum: 14.6,
+      score: 70, tbw: '44.0', protein: '12.0', mineral: '3.82', wCtl: '-8.4', fCtl: '-3.4', mCtl: '+0.6',
+      bmiJ: '비만', pbfJ: '표준', whr: '0.91', vfl: 11, bmr: 1670, obes: 115, kcal: 2050,
       mL: '표준', mR: '표준', mT: '표준', mLL: '표준', mRL: '표준',
       fL: '표준이상', fR: '표준이상', fT: '표준이상', fLL: '표준', fRL: '표준'
     }));
     measureRows.push(['A', '2026-09-15', '', '178', '32', '남', '데모센터', 'InBody000', '', '', '', '', '', '', '', '', '', '', '', '', '', '', '', '', '', '', '', '', '', '', '', '', '', '', '', '', '', '', '', '', '', '', '', '', '', '', '', '', '', '']);
     measureRows.push(personRow(A, {
-      name: 'A', date: 'Date(2026,9,5)', time: '오후 7:40', weight: '81.2', weightNum: 81.2, smm: '34.4', pbfNum: 24.2,
-      score: 72, tbw: '43.8', protein: '12.1', mineral: '3.84', wCtl: '-7.2', fCtl: '-6.1', mCtl: '+0.6',
-      bmiJ: '비만', pbfJ: '경도비만', whr: '0.90', vfl: 11, bmr: 1664, obes: 114, kcal: 2020,
+      name: 'A', date: 'Date(2026,9,5)', time: '오후 7:40', weight: '81.2', weightNum: 81.2, smm: '34.4', pbfNum: 12.4,
+      score: 72, tbw: '43.8', protein: '12.1', mineral: '3.84', wCtl: '-7.2', fCtl: '-1.2', mCtl: '+0.6',
+      bmiJ: '비만', pbfJ: '표준', whr: '0.90', vfl: 11, bmr: 1664, obes: 114, kcal: 2020,
       mL: '표준', mR: '표준', mT: '표준', mLL: '표준', mRL: '표준',
       fL: '표준', fR: '표준', fT: '표준이상', fLL: '표준', fRL: '표준', memo: '9월은 빈 달'
     }));
@@ -164,14 +164,14 @@
     }));
 
     measureRows.push(personRow(C, {
-      name: 'C', date: '2026-08-12', time: '18:00', weight: '70.0', weightNum: 70, smm: '22.0', pbfNum: 28,
+      name: 'C', date: '2026-08-12', time: '18:00', weight: '70.0', weightNum: 70, smm: '22.0', pbfNum: 24,
       score: 74, tbw: '31.2', protein: '8.2', mineral: '2.70', wCtl: '0.0', fCtl: '-2.4', mCtl: '+2.0',
       bmiJ: '과체중', pbfJ: '표준', whr: '0.84', vfl: 7, bmr: 1320, obes: 108, kcal: 1700,
       mL: '표준', mR: '표준', mT: '표준', mLL: '표준이하', mRL: '표준이하',
       fL: '표준', fR: '표준', fT: '표준', fLL: '표준', fRL: '표준'
     }));
     measureRows.push(personRow(C, {
-      name: 'C', date: serial('2026-10-02'), time: '18:30', weight: '70.6', weightNum: 70.6, smm: '23.0', pbfNum: 27.2,
+      name: 'C', date: serial('2026-10-02'), time: '18:30', weight: '70.6', weightNum: 70.6, smm: '23.0', pbfNum: 20,
       score: 76, tbw: '31.6', protein: '8.4', mineral: '2.74', wCtl: '+0.6', fCtl: '-1.8', mCtl: '+1.0',
       bmiJ: '과체중', pbfJ: '표준', whr: '0.83', vfl: 7, bmr: 1340, obes: 109, kcal: 1720,
       mL: '표준', mR: '표준', mT: '표준', mLL: '표준', mRL: '표준',
@@ -187,7 +187,7 @@
     series('A', '24주 동안 체중을 천천히 줄이기', {
       weight: ['84.0', '82.0', '', '79.0', '77.0', '75.5', '74.0'],
       smm: ['34.2', '34.4', '34.5', '34.6', '34.7', '34.8', '35.0'],
-      pbf: ['26.0', '24.8', '23.6', '22.2', '20.8', '19.4', '18.0'],
+      pbf: ['16.8', '16.0', '15.2', '14.4', '13.4', '12.6', '12.0'],
       vfl: ['12', '11', '10', '9', '9', '8', '7'],
       score: ['68', '70', '72', '74', '76', '78', '80']
     }).forEach(function (r) { goalRows.push(r); });
@@ -201,7 +201,7 @@
     series('C', '체중은 유지하고 골격근만 올리기', {
       weight: ['70.0', '70.0', '70.0', '70.0', '70.0', '70.0', '70.0'],
       smm: ['22.0', '22.4', '22.8', '23.2', '23.5', '23.8', '24.0'],
-      pbf: ['28.0', '27.4', '26.8', '26.0', '25.2', '24.6', '24.0'],
+      pbf: ['24.0', '23.4', '22.8', '22.2', '21.4', '20.6', '20.0'],
       vfl: ['7', '7', '6', '6', '6', '5', '5'],
       score: ['74', '76', '78', '80', '81', '82', '84']
     }).forEach(function (r) { goalRows.push(r); });
