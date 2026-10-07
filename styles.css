@@ -184,10 +184,10 @@ h1 {
   mask-image: var(--bf-mask);
   -webkit-mask-repeat: no-repeat;
   mask-repeat: no-repeat;
-  -webkit-mask-position: center bottom;
-  mask-position: center bottom;
-  -webkit-mask-size: auto 100%;
-  mask-size: auto 100%;
+  -webkit-mask-position: 0 0;
+  mask-position: 0 0;
+  -webkit-mask-size: 100% 100%;
+  mask-size: 100% 100%;
   -webkit-mask-mode: alpha;
   mask-mode: alpha;
 }
