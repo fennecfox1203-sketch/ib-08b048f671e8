@@ -145,19 +145,19 @@ h1 {
 .bodyfig {
   position: relative;
   height: calc(var(--fig-h, 168px) * var(--h, 1));
-  width: calc(var(--fig-h, 168px) * var(--h, 1) * var(--aw, 0.481));
+  width: calc(var(--fig-h, 168px) * var(--h, 1) * var(--aw, 0.467));
   flex: 0 0 auto;
   --accent: #7c9cff;
 }
 .bodyfig .bf-glow {
   position: absolute;
-  left: 14%;
-  right: 14%;
-  top: 16%;
-  bottom: 6%;
-  border-radius: 46% 46% 40% 40%;
-  background: radial-gradient(ellipse at 50% 62%, var(--accent), transparent 70%);
-  opacity: .28;
+  left: 28%;
+  right: 28%;
+  top: auto;
+  bottom: 0;
+  height: 5%;
+  border-radius: 50%;
+  background: radial-gradient(ellipse at center, rgba(0, 0, 0, .28), transparent 72%);
   pointer-events: none;
 }
 .bodyfig .bf-scale {
@@ -183,12 +183,12 @@ h1 {
   display: block;
   -webkit-user-drag: none;
 }
-.pose-flex .bf-anim { animation: pose-flex 2.8s ease-in-out infinite; transform-origin: 50% 100%; }
-.pose-jog .bf-anim { animation: pose-jog 2.4s ease-in-out infinite; transform-origin: 50% 100%; }
-.pose-wave .bf-anim { animation: pose-sway 3.2s ease-in-out infinite; transform-origin: 50% 100%; }
-.pose-donut .bf-anim { animation: pose-sway 3.2s ease-in-out infinite; transform-origin: 50% 100%; }
-.pose-poke .bf-anim { animation: pose-squish 3s ease-in-out infinite; transform-origin: 50% 64%; }
-.pose-hug .bf-anim { animation: pose-shy 3.4s ease-in-out infinite; transform-origin: 50% 100%; }
+.pose-flex .bf-anim { animation: pose-flex 2.2s ease-in-out infinite; transform-origin: 50% 100%; }
+.pose-jog .bf-anim { animation: pose-jog 2s ease-in-out infinite; transform-origin: 50% 100%; }
+.pose-wave .bf-anim { animation: pose-sway 2.2s ease-in-out infinite; transform-origin: 50% 100%; }
+.pose-donut .bf-anim { animation: pose-sway 2.4s ease-in-out infinite; transform-origin: 50% 100%; }
+.pose-poke .bf-anim { animation: pose-squish 2.2s ease-in-out infinite; transform-origin: 50% 64%; }
+.pose-hug .bf-anim { animation: pose-shy 2.4s ease-in-out infinite; transform-origin: 50% 100%; }
 .pose-flex .bf-anim,
 .pose-jog .bf-anim,
 .pose-wave .bf-anim,
@@ -202,13 +202,13 @@ h1 {
 .pose-wave .bf-fx {
   z-index: 2;
   transform-origin: var(--joint-x, 35%) var(--joint-y, 27%);
-  animation: pose-wave 2.6s ease-in-out infinite;
+  animation: pose-wave 1.8s ease-in-out infinite;
   animation-delay: var(--phase, 0s);
 }
 .pose-donut .bf-fx {
   z-index: 0;
   transform-origin: var(--fx-x, 80%) var(--fx-y, 52%);
-  animation: pose-peek 3.2s ease-in-out infinite;
+  animation: pose-peek 2.4s ease-in-out infinite;
   animation-delay: var(--phase, 0s);
 }
 .spark {
@@ -220,7 +220,7 @@ h1 {
   background: #ffe36b;
   clip-path: polygon(50% 0, 61% 35%, 98% 35%, 68% 57%, 79% 91%, 50% 70%, 21% 91%, 32% 57%, 2% 35%, 39% 35%);
   pointer-events: none;
-  animation: pose-twinkle 2.6s ease-in-out infinite;
+  animation: pose-twinkle 1.6s ease-in-out infinite;
 }
 .blush {
   position: absolute;
@@ -231,54 +231,52 @@ h1 {
   border-radius: 50%;
   background: radial-gradient(ellipse at center, rgba(255, 120, 146, .8), rgba(255, 120, 146, 0) 72%);
   pointer-events: none;
-  animation: pose-blush 3.2s ease-in-out infinite;
+  animation: pose-blush 2.2s ease-in-out infinite;
   animation-delay: var(--phase, 0s);
 }
-.pose-hug .blush { animation-duration: 3.4s; }
-.pose-poke .blush { animation-duration: 3s; }
+.pose-hug .blush { animation-duration: 2.4s; }
+.pose-poke .blush { animation-duration: 2.2s; }
 @keyframes pose-flex {
   0%, 100% { transform: translateY(0) rotate(0deg) scale(1); }
-  40% { transform: translateY(-2px) rotate(-1.5deg) scale(1.03); }
-  58% { transform: translateY(-1px) rotate(0.6deg) scale(1.012); }
+  30% { transform: translateY(-3px) rotate(-2.4deg) scale(1.045); }
+  52% { transform: translateY(-1px) rotate(0.8deg) scale(1.015); }
 }
 @keyframes pose-twinkle {
-  0%, 100% { opacity: .25; transform: scale(.8) rotate(-12deg); }
-  50% { opacity: 1; transform: scale(1.15) rotate(14deg); }
+  0%, 100% { opacity: .2; transform: scale(.75) rotate(-16deg); }
+  35% { opacity: 1; transform: scale(1.2) rotate(16deg); }
 }
 @keyframes pose-jog {
-  0%, 100% { transform: translateY(0) rotate(0deg); }
-  18% { transform: translateY(-6px) rotate(-2.2deg); }
-  36% { transform: translateY(0) rotate(0deg); }
-  58% { transform: translateY(-4px) rotate(2deg); }
-  76% { transform: translateY(0) rotate(0deg); }
+  0%, 32%, 64%, 100% { transform: translateY(0) rotate(0deg); }
+  14% { transform: translateY(-8px) rotate(-3deg); }
+  46% { transform: translateY(-6px) rotate(2.6deg); }
 }
 @keyframes pose-sway {
-  0%, 100% { transform: rotate(-1.6deg); }
-  50% { transform: rotate(1.8deg); }
+  0%, 100% { transform: rotate(-2.2deg); }
+  40% { transform: rotate(2.4deg); }
 }
 @keyframes pose-wave {
   0%, 100% { transform: rotate(0deg); }
-  22% { transform: rotate(-16deg); }
-  48% { transform: rotate(13deg); }
-  72% { transform: rotate(-9deg); }
-  86% { transform: rotate(5deg); }
+  20% { transform: rotate(-22deg); }
+  42% { transform: rotate(16deg); }
+  64% { transform: rotate(-12deg); }
+  82% { transform: rotate(6deg); }
 }
 @keyframes pose-peek {
-  0%, 100% { transform: translate(0, 1px) rotate(-6deg); }
-  42% { transform: translate(7px, -2px) rotate(12deg); }
-  64% { transform: translate(2px, 0) rotate(2deg); }
+  0%, 100% { transform: translate(0, 1px) rotate(-8deg); }
+  34% { transform: translate(11px, -3px) rotate(16deg); }
+  58% { transform: translate(3px, 0) rotate(3deg); }
 }
 @keyframes pose-squish {
-  0%, 70%, 100% { transform: scale(1, 1); }
-  36% { transform: scale(1.055, 0.96); }
+  0%, 62%, 100% { transform: scale(1, 1); }
+  30% { transform: scale(1.07, 0.945); }
 }
 @keyframes pose-shy {
-  0%, 100% { transform: rotate(-2deg); }
-  50% { transform: rotate(2.4deg); }
+  0%, 100% { transform: rotate(-1.2deg); }
+  38% { transform: rotate(3.2deg); }
 }
 @keyframes pose-blush {
-  0%, 100% { opacity: .2; transform: scale(.92); }
-  50% { opacity: .9; transform: scale(1.08); }
+  0%, 100% { opacity: .15; transform: scale(.9); }
+  40% { opacity: .95; transform: scale(1.1); }
 }
 
 .kv { background: var(--card2); border-radius: 12px; padding: 10px 12px; }

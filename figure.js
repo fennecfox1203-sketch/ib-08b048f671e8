@@ -26,12 +26,12 @@ function bodyBand(pbf) {
   const t = (raw - lo) / 5;
   return { lo: lo, hi: hi, t: t, scaleX: 1 + 0.03 * Math.sin(Math.PI * t), pbf: raw };
 }
-var ASSET_V = '20261007b';
+var ASSET_V = '20261007c';
 var POSE = { 10: 'flex', 15: 'jog', 20: 'wave', 25: 'donut', 30: 'poke', 35: 'hug' };
-var SPARKS = [[27.1, 3.9], [16.6, 7.5], [41.6, 15.5], [10.0, 12.4]];
+var SPARKS = [[27.5, 4.3], [16.0, 8.0], [9.7, 12.9], [41.7, 16.2]];
 var BLUSH = {
-  poke: [[42.7, 14.8], [53.3, 15.9]],
-  hug: [[41.4, 15.0], [52.7, 15.9]]
+  poke: [[40.7, 18.5], [51.0, 18.8]],
+  hug: [[40.9, 19.5], [52.5, 17.0]]
 };
 function nearest(band) {
   if (band.lo === band.hi || band.t < 0.5) return band.lo;
@@ -77,7 +77,7 @@ function bodySVG(r, color, cls, maxCm) {
     ' data-lo="' + band.lo + '" data-hi="' + band.hi + '" data-t="' + band.t.toFixed(3) + '"' +
     ' data-sx="' + band.scaleX.toFixed(4) + '" data-h="' + h.toFixed(4) + '"' +
     ' style="--accent:' + accent + ';--h:' + h.toFixed(4) + ';--sx:' + band.scaleX.toFixed(4) +
-    ';--aw:0.481;--phase:' + phase.toFixed(2) + 's;--joint-x:34.7%;--joint-y:27%;--fx-x:79.9%;--fx-y:51.6%">' +
+    ';--aw:0.467;--phase:' + phase.toFixed(2) + 's;--joint-x:31.9%;--joint-y:28.1%;--fx-x:80.1%;--fx-y:52.5%">' +
     '<div class="bf-glow"></div><div class="bf-scale"><div class="bf-anim">' + pics + extra + '</div></div></div>';
 }
   root.Inbody = root.Inbody || {};
