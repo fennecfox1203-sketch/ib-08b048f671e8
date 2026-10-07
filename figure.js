@@ -26,7 +26,7 @@ function bodyBand(pbf) {
   const t = (raw - lo) / 5;
   return { lo: lo, hi: hi, t: t, scaleX: 1 + 0.03 * Math.sin(Math.PI * t), pbf: raw };
 }
-var ASSET_V = '20261007d';
+var ASSET_V = '20261007e';
 var POSE = { 10: 'flex', 15: 'jog', 20: 'wave', 25: 'donut', 30: 'poke', 35: 'hug' };
 var SPARKS = [[28.4, 5.2], [17.5, 9.0], [11.3, 13.7], [42.3, 16.9]];
 var BLUSH = {
@@ -61,15 +61,23 @@ function bodySVG(r, color, cls, maxCm) {
   if (anchor === 25) pics = picture('pose_bf25_fx', 'bf-fx') + pics;
   if (anchor === 20) pics += picture('pose_bf20_fx', 'bf-fx');
   let extra = '';
+  function at(cls, x, y, delay, text) {
+    return '<i class="' + cls + '" style="left:' + x.toFixed(1) + '%;top:' + y.toFixed(1) +
+      '%;animation-delay:calc(var(--phase) + ' + delay.toFixed(2) + 's)">' + (text || '') + '</i>';
+  }
   if (anchor === 10) {
     extra = SPARKS.map(function (p, i) {
-      return '<i class="spark" style="left:' + p[0].toFixed(1) + '%;top:' + p[1].toFixed(1) +
-        '%;animation-delay:calc(var(--phase) + ' + (i * 0.32).toFixed(2) + 's)"></i>';
+      return at('spark', p[0], p[1], i * 0.42);
     }).join('');
   } else if (BLUSH[pose]) {
-    extra = BLUSH[pose].map(function (p) {
-      return '<i class="blush" style="left:' + p[0].toFixed(1) + '%;top:' + p[1].toFixed(1) + '%"></i>';
+    extra = BLUSH[pose].map(function (p, i) {
+      return at('blush', p[0], p[1], i * 0.2);
     }).join('');
+    if (anchor === 30) extra += at('sweat', 61.5, 12.4, 0.15);
+    if (anchor === 35) {
+      extra += at('floater heart', 66, 11, 0.2, '♥');
+      extra += at('floater marks', 33.5, 15.5, 0.85, '///');
+    }
   }
   return '<div class="bodyfig pose-' + pose + ' ' + (cls || '') + '" role="img" aria-label="' + aria + '"' +
     ' data-pbf="' + (rec.pbf == null ? '' : (+rec.pbf).toFixed(1)) + '"' +
