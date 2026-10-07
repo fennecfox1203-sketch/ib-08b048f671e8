@@ -26,7 +26,7 @@ function bodyBand(pbf) {
   const t = (raw - lo) / 5;
   return { lo: lo, hi: hi, t: t, scaleX: 1 + 0.03 * Math.sin(Math.PI * t), pbf: raw };
 }
-var ASSET_V = '20261007e';
+var ASSET_V = '20261007f';
 var POSE = { 10: 'flex', 15: 'jog', 20: 'wave', 25: 'donut', 30: 'poke', 35: 'hug' };
 var SPARKS = [[28.4, 5.2], [17.5, 9.0], [11.3, 13.7], [42.3, 16.9]];
 var BLUSH = {
@@ -73,11 +73,8 @@ function bodySVG(r, color, cls, maxCm) {
     extra = BLUSH[pose].map(function (p, i) {
       return at('blush', p[0], p[1], i * 0.2);
     }).join('');
-    if (anchor === 30) extra += at('sweat', 61.5, 12.4, 0.15);
-    if (anchor === 35) {
-      extra += at('floater heart', 66, 11, 0.2, '♥');
-      extra += at('floater marks', 33.5, 15.5, 0.85, '///');
-    }
+    if (anchor === 30) extra += at('sweat', 56.4, 14.2, 0.15);
+    if (anchor === 35) extra += at('floater heart', 63.5, 14.8, 0.2, '<b></b>');
   }
   return '<div class="bodyfig pose-' + pose + ' ' + (cls || '') + '" role="img" aria-label="' + aria + '"' +
     ' data-pbf="' + (rec.pbf == null ? '' : (+rec.pbf).toFixed(1)) + '"' +
