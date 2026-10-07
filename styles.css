@@ -145,7 +145,7 @@ h1 {
 .bodyfig {
   position: relative;
   height: calc(var(--fig-h, 168px) * var(--h, 1));
-  width: calc(var(--fig-h, 168px) * var(--h, 1) * var(--aw, 0.467));
+  width: calc(var(--fig-h, 168px) * var(--h, 1) * var(--aw, 0.476));
   flex: 0 0 auto;
   --accent: #7c9cff;
 }
@@ -181,6 +181,7 @@ h1 {
   max-width: none;
   transform: translateX(-50%);
   display: block;
+  image-rendering: auto;
   -webkit-user-drag: none;
 }
 .pose-flex .bf-anim { animation: pose-flex 2.2s ease-in-out infinite; transform-origin: 50% 100%; }
@@ -237,9 +238,9 @@ h1 {
 .pose-hug .blush { animation-duration: 2.4s; }
 .pose-poke .blush { animation-duration: 2.2s; }
 @keyframes pose-flex {
-  0%, 100% { transform: translateY(0) rotate(0deg) scale(1); }
-  30% { transform: translateY(-3px) rotate(-2.4deg) scale(1.045); }
-  52% { transform: translateY(-1px) rotate(0.8deg) scale(1.015); }
+  0%, 100% { transform: translateY(0) rotate(0deg); }
+  30% { transform: translateY(-4px) rotate(-2.6deg); }
+  52% { transform: translateY(-1px) rotate(0.8deg); }
 }
 @keyframes pose-twinkle {
   0%, 100% { opacity: .2; transform: scale(.75) rotate(-16deg); }
@@ -267,8 +268,8 @@ h1 {
   58% { transform: translate(3px, 0) rotate(3deg); }
 }
 @keyframes pose-squish {
-  0%, 62%, 100% { transform: scale(1, 1); }
-  30% { transform: scale(1.07, 0.945); }
+  0%, 62%, 100% { transform: translateY(0); }
+  30% { transform: translateY(2.5px); }
 }
 @keyframes pose-shy {
   0%, 100% { transform: rotate(-1.2deg); }
