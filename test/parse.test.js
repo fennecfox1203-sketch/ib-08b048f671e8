@@ -111,11 +111,25 @@ const ratio = (x1 - x0) / (x2 - x0);
 assert.ok(ratio > 0.15 && ratio < 0.4, 'empty month keeps calendar space ' + ratio);
 
 const round = data.by.B[data.by.B.length - 1];
-const fig = I.bodySVG(round, '#c08cff');
-assert.ok(fig.indexOf('<svg') >= 0 && fig.indexOf('NaN') < 0, 'silhouette');
+const fig = I.bodySVG(round, '#c08cff', '', 183);
+assert.ok(fig.indexOf('bodyfig') >= 0 && fig.indexOf('NaN') < 0, 'silhouette');
+assert.ok(fig.indexOf('img/body/bf30.webp') >= 0, '30% anchor');
 const shape = I.bodyShape(round);
 assert.ok(shape.f > 0.85, 'high body fat is round ' + shape.f);
 assert.ok(shape.m < 0.7, 'muscle stays skeletal ' + shape.m);
+const band = I.bodyBand(23);
+assert.strictEqual(band.lo, 20, '23% low anchor');
+assert.strictEqual(band.hi, 25, '23% high anchor');
+assert.ok(Math.abs(band.t - 0.6) < 1e-9, '23% is 40/60 ' + band.t);
+assert.strictEqual(I.bodyBand(8).lo, 10, 'clamp below 10');
+assert.strictEqual(I.bodyBand(35).lo, 35, '35 anchor');
+assert.ok(I.bodyBand(40).scaleX > 1 && I.bodyBand(40).scaleX <= 1.06, 'widen past 35');
+assert.ok(Math.abs(I.bodyBand(20).scaleX - 1) < 1e-9, 'anchor scale is 1');
+const shortFig = I.bodySVG({ pbf: 20, height: 167, bmi: 25, sex: '여' }, '#ff8fc7', '', 183);
+assert.ok(shortFig.indexOf('data-h="0.9126"') >= 0, '167/183 height ' + shortFig.match(/data-h="[^"]+"/));
+assert.ok(data.by.A[data.by.A.length - 1].pbf === 12.4, 'demo A lean');
+assert.ok(data.by.C[data.by.C.length - 1].pbf === 20, 'demo C mid');
+assert.ok(data.by.A[0].height === 183 && data.by.B[0].height === 180 && data.by.C[0].height === 167, 'demo heights');
 
 ['demo.js', 'app.js', 'index.html', 'charts.js', 'figure.js', 'styles.css', 'parse.js'].forEach(function (file) {
   const text = fs.readFileSync(path.join(root, file), 'utf8');

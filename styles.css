@@ -124,18 +124,65 @@ h1 {
 .grid4 { display: grid; grid-template-columns: 1fr 1fr; gap: 8px; }
 .pc-body { display: grid; grid-template-columns: 84px 1fr; gap: 10px; align-items: stretch; }
 .fig { display: flex; flex-direction: column; align-items: center; justify-content: flex-end; background: var(--card2); border-radius: 12px; padding: 6px 2px; }
-.fig svg { display: block; width: 76px; height: 152px; }
 .fig .fl { font-size: .78rem; font-weight: 800; margin-top: 2px; white-space: nowrap; }
 .trio { display: flex; justify-content: space-around; align-items: flex-end; gap: 4px; }
 .trio .fig { appearance: none; background: transparent; padding: 0; border: 0; min-width: 0; color: inherit; }
-.trio .fig svg { width: 92px; height: 184px; }
+.trio .bodyfig { --fig-h: 188px; --fig-w: 77px; }
 .trio .nm { font-size: 1.02rem; font-weight: 800; margin-top: 2px; }
 .trio .fl { font-size: .78rem; }
-.figs { display: flex; justify-content: center; gap: 18px; align-items: flex-end; }
-.figs .fig { background: transparent; padding: 0; }
-.figs .fig svg { width: 120px; height: 240px; }
+.figs { display: flex; justify-content: center; gap: 8px; align-items: flex-end; }
+.figs .fig { background: transparent; padding: 0; min-width: 0; }
+.figs .bodyfig { --fig-h: 210px; --fig-w: 86px; }
+.figs.figs-3 .fig { width: 30%; }
+.figs.figs-3 .bodyfig { --fig-h: 146px; --fig-w: 60px; }
+.figs.figs-3 .fig .fl { font-size: .72rem; }
 .figs .fig .fl { font-size: .92rem; }
+.figs.figs-3 .fig .fl { font-size: .72rem; }
 .figs .fig .fs { font-size: .78rem; color: var(--muted); text-align: center; line-height: 1.35; }
+.figs.figs-3 .fig .fs { font-size: .68rem; }
+.fig-to { color: var(--muted); font-weight: 800; align-self: center; padding-bottom: 36px; flex: 0 0 auto; }
+.pc-body .bodyfig { --fig-h: 148px; --fig-w: 61px; }
+.bodyfig {
+  position: relative;
+  height: calc(var(--fig-h, 168px) * var(--h, 1));
+  width: calc(var(--fig-w, 69px) * var(--h, 1));
+  flex: 0 0 auto;
+  --accent: #7c9cff;
+}
+.trio .bodyfig, .figs .bodyfig { animation: bf-float 3.8s ease-in-out infinite; }
+.bodyfig .bf-glow {
+  position: absolute;
+  left: 14%;
+  right: 14%;
+  top: 16%;
+  bottom: 6%;
+  border-radius: 46% 46% 40% 40%;
+  background: radial-gradient(ellipse at 50% 62%, var(--accent), transparent 70%);
+  opacity: .28;
+  pointer-events: none;
+}
+.bodyfig .bf-stack {
+  position: absolute;
+  inset: 0;
+  transform: scaleX(var(--sx, 1));
+  transform-origin: 50% 100%;
+}
+.bodyfig .bf-pic { position: absolute; inset: 0; margin: 0; }
+.bodyfig .bf-pic img {
+  position: absolute;
+  left: 50%;
+  bottom: 0;
+  height: 100%;
+  width: auto;
+  max-width: none;
+  transform: translateX(-50%);
+  display: block;
+  -webkit-user-drag: none;
+}
+@keyframes bf-float {
+  0%, 100% { transform: translateY(0); }
+  50% { transform: translateY(-2px); }
+}
 
 .kv { background: var(--card2); border-radius: 12px; padding: 10px 12px; }
 .kv .l { font-size: .78rem; color: var(--muted); }
@@ -297,9 +344,11 @@ h1 {
 @media (max-width: 380px) {
   .hero { grid-template-columns: 104px 1fr; gap: 10px; }
   .donut { width: 104px; height: 104px; }
-  .trio .fig svg { width: 78px; height: 156px; }
-  .figs .fig svg { width: 104px; height: 208px; }
+  .trio .bodyfig { --fig-h: 156px; --fig-w: 64px; }
+  .figs .bodyfig { --fig-h: 168px; --fig-w: 69px; }
+  .figs.figs-3 .bodyfig { --fig-h: 128px; --fig-w: 52px; }
 }
 @media (prefers-reduced-motion: reduce) {
   .icon-btn:active { transform: none; }
+  .trio .bodyfig, .figs .bodyfig { animation: none; }
 }

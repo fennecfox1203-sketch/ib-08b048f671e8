@@ -44,9 +44,27 @@
   }
   function latest(name) { const a = state.data.by[name]; return a[a.length - 1]; }
   function goalOf(name) { return (state.goals && state.goals.people && state.goals.people[name]) || null; }
+  function tallestCm(records) {
+    return records.reduce(function (m, r) { return r && r.height ? Math.max(m, r.height) : m; }, 0);
+  }
+  function goalBody(name, base) {
+    const P = goalOf(name);
+    const goals = state.goals;
+    if (!P || !goals || goals.fin == null || !base) return null;
+    const g = P.pts[goals.fin];
+    if (!g || (g.weight == null && g.pbf == null && g.smm == null)) return null;
+    const weight = g.weight != null ? g.weight : base.weight;
+    const pbf = g.pbf != null ? g.pbf : base.pbf;
+    const smm = g.smm != null ? g.smm : base.smm;
+    const height = base.height;
+    const bmi = height && weight != null ? weight / Math.pow(height / 100, 2) : base.bmi;
+    return { sex: base.sex, height: height, weight: weight, pbf: pbf, smm: smm, bmi: bmi };
+  }
   function figLabel(r) {
     const j = r.pbfJ || '';
-    return '<div class="fl ' + I.judgeClass(j) + '">' + (j ? '체지방률 ' + I.esc(j) : '') + '</div>';
+    const pct = r.pbf != null ? I.fx(r.pbf, 1) + '%' : '';
+    const text = [pct, j].filter(Boolean).join(' · ');
+    return '<div class="fl ' + I.judgeClass(j) + '">' + (text ? I.esc(text) : '') + '</div>';
   }
   function badge(label, j) {
     if (!j) return '';
@@ -118,7 +136,7 @@
       '<div class="pc-top"><div><div class="pc-name"><i style="background:' + c + '"></i>' + I.esc(name) + '</div>' +
       '<div class="pc-date">' + I.esc((r.date || '날짜 없음') + (r.time ? ' ' + r.time : '')) + ' · ' + D.by[name].length + '회 측정</div></div>' +
       '<div class="pc-score"><div class="v" style="color:' + c + '">' + (r.score == null ? '–' : I.esc(r.score)) + '</div><div class="l">인바디점수</div></div></div>' +
-      '<div class="pc-body"><div class="fig">' + I.bodySVG(r, c) + figLabel(r) + '</div><div class="grid4">' +
+      '<div class="pc-body"><div class="fig">' + I.bodySVG(r, c, '', r.height) + figLabel(r) + '</div><div class="grid4">' +
       '<div class="kv"><div class="l">체중</div><div class="v">' + I.fx(r.weight, 1) + '<small>kg</small></div></div>' +
       '<div class="kv"><div class="l">골격근량</div><div class="v">' + I.fx(r.smm, 1) + '<small>kg</small></div></div>' +
       '<div class="kv"><div class="l">체지방률</div><div class="v ' + I.judgeClass(r.pbfJ) + '">' + I.fx(r.pbf, 1) + '<small>%</small></div></div>' +
@@ -144,10 +162,11 @@
 
   function renderHome() {
     const D = state.data;
-    let h = '<div class="card"><h2>세 사람 체형<small>용지 값으로 그린 그림</small></h2><div class="trio">' +
+    const maxCm = tallestCm(D.people.map(latest));
+    let h = '<div class="card"><h2>세 사람 체형<small>키와 체지방률</small></h2><div class="trio">' +
       D.people.map(function (n) {
         const r = latest(n);
-        return '<button type="button" class="fig" data-go="' + I.esc(n) + '">' + I.bodySVG(r, colorOf(n)) +
+        return '<button type="button" class="fig" data-go="' + I.esc(n) + '">' + I.bodySVG(r, colorOf(n), '', maxCm) +
           '<div class="nm" style="color:' + colorOf(n) + '">' + I.esc(n) + '</div>' + figLabel(r) + '</button>';
       }).join('') + '</div></div>';
     D.people.forEach(function (n) {
@@ -267,15 +286,21 @@
       I.esc([r.height != null ? r.height + 'cm' : '', r.age != null ? r.age + '세' : '', r.sex].filter(Boolean).join(' · ')) + '</div>' +
       '<div class="badges">' + badge('BMI', r.bmiJ) + badge('체지방률', r.pbfJ) + '</div></div></div></div>';
     h += goalCard(name, c);
+    const maxCm = r.height || 0;
     const one = function (x, cap) {
-      return '<div class="fig">' + I.bodySVG(x, c) + figLabel(x) + '<div class="fs">' + (cap ? I.esc(cap) + '<br>' : '') +
-        I.fx(x.weight, 1) + 'kg · 체지방률 ' + I.fx(x.pbf, 1) + '%</div></div>';
+      return '<div class="fig">' + I.bodySVG(x, c, '', maxCm) + figLabel(x) + '<div class="fs">' + (cap ? I.esc(cap) + '<br>' : '') +
+        I.fx(x.weight, 1) + 'kg</div></div>';
     };
     const dated = recs.filter(function (x) { return x.date; });
     const early = dated[0] || first;
-    h += '<div class="card"><h2>체형 그림<small>스타일 A</small></h2><div class="figs">' +
-      (recs.length >= 2 ? one(early, '첫 측정 ' + I.shortDate(early.date)) + one(r, '최근 ' + I.shortDate(r.date)) : one(r, '')) +
-      '</div><div class="rb-sub" style="margin-top:8px;text-align:center">체지방률·BMI·골격근량·키로 모양을 정했습니다. 체지방이 높으면 둥글고, 근육은 어깨 너비만 바꿉니다.</div></div>';
+    const goalFig = goalBody(name, r);
+    const shots = [];
+    if (recs.length >= 2) shots.push(one(early, '처음'));
+    shots.push(one(r, '지금'));
+    if (goalFig) shots.push(one(goalFig, (state.goals.fin || 24) + '주 목표'));
+    h += '<div class="card"><h2>체형 그림<small>' + (goalFig ? '처음에서 목표로' : '키와 체지방률') + '</small></h2><div class="figs' + (shots.length > 2 ? ' figs-3' : '') + '">' +
+      shots.join('<div class="fig-to" aria-hidden="true">→</div>') +
+      '</div><div class="rb-sub" style="margin-top:8px;text-align:center">같은 사람의 키로 맞추고, 체지방률 1%마다 가까운 두 그림을 섞습니다. 10% 이하는 10%, 35% 이상은 35% 그림입니다.</div></div>';
     if (r.target != null && first.weight != null) {
       const start = first.weight;
       const tgt = r.target;
