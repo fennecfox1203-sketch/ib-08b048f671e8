@@ -11,7 +11,7 @@
   const HORIZONS = [4, 12, 24];
 
   const $ = function (id) { return document.getElementById(id); };
-  const state = { tab: 'home', data: null, goals: null, sheetId: '', demo: false, gm: {}, hz: {} };
+  const state = { tab: 'home', data: null, goals: null, sheetId: '', demo: false, gm: {}, hz: {}, span: 'all', problem: null, notice: '' };
   let syncGen = 0;
 
   function lsGet(k) { try { return localStorage.getItem(k) || ''; } catch (e) { return ''; } }
@@ -88,6 +88,52 @@
     return parts.join('. ');
   }
   function gmDefault(P) { return (P.mode.weight && P.mode.weight.band) ? 'smm' : 'weight'; }
+  function peopleWord(n) {
+    return ({ 1: '한 사람', 2: '두 사람', 3: '세 사람', 4: '네 사람' })[n] || (n + '명');
+  }
+  function deltaBlock(name) {
+    const sum = I.changeSummary((state.data && state.data.by && state.data.by[name]) || []);
+    if (!sum.sentence) return '';
+    return '<p class="delta">' + I.esc(sum.sentence) + '</p>' +
+      (sum.latest ? '<p class="delta sub">' + I.esc(sum.latest) + '</p>' : '');
+  }
+  function spanTabs() {
+    const items = [['4', '최근 4주'], ['12', '최근 12주'], ['all', '전체']];
+    const b = I.periodBounds(state.span, I.todayStr());
+    const hint = b.from
+      ? (I.shortDate(b.from) + '~' + I.shortDate(b.to) + ' 측정입니다. 점선은 그 구간의 목표입니다.')
+      : '처음 측정부터 최근 측정까지입니다. 점선은 같은 날의 목표입니다.';
+    return '<div class="htabs period" role="group" aria-label="변화 그래프 기간">' + items.map(function (it) {
+      const on = (state.span || 'all') === it[0];
+      return '<button type="button" class="htab' + (on ? ' on' : '') + '" data-span="' + it[0] + '" aria-pressed="' + (on ? 'true' : 'false') + '">' + it[1] + '</button>';
+    }).join('') + '</div><p class="span-hint">' + I.esc(hint) + '</p>';
+  }
+  function trendGoal(name, key, shown, bounds) {
+    if (!state.goals) return [];
+    const tp = I.goalPath(state.goals, name, key);
+    if (tp.length < 2) return [];
+    const from = (bounds && bounds.from) || (shown[0] && shown[0].date) || '';
+    const to = (bounds && bounds.to) || (shown.length ? shown[shown.length - 1].date : '');
+    if (!from || !to) return [];
+    return I.clipPath(tp, from, to);
+  }
+  function trendNote(name, m, shown) {
+    const P = goalOf(name);
+    const tp = state.goals ? I.goalPath(state.goals, name, m.k) : [];
+    const fin = tp.length ? tp[tp.length - 1] : null;
+    const finBit = fin ? '최종 목표는 ' + I.fx(fin.v, m.d) + m.u + ' (' + I.shortDate(fin.date) + ')입니다.' : '';
+    if (!shown.length) return '이 기간에는 측정이 없습니다.' + (finBit ? ' ' + finBit : '');
+    const last = shown[shown.length - 1];
+    let gap = '';
+    if (P && tp.length >= 2 && last[m.k] != null) {
+      const target = I.pathAt(tp, last.date);
+      const ahead = I.onTrack(P, m, tp, last.date, last[m.k]);
+      const text = I.goalGapText(m, last[m.k], target, ahead, (P.mode || {})[m.k]);
+      if (text) gap = I.shortDate(last.date) + ' 측정은 ' + text;
+    }
+    const once = shown.length === 1 && !gap ? '이 기간 측정은 ' + I.shortDate(last.date) + ' 한 번입니다.' : '';
+    return [once, gap, finBit].filter(Boolean).join(' ');
+  }
 
   function goalGraphCard(name) {
     const P = goalOf(name);
@@ -116,6 +162,7 @@
       (P.goal ? '<div class="gc-goal">' + I.esc(P.goal) + '</div>' : '') + '</div>' +
       '<div class="gc-stats"><div><span class="v" style="color:' + c + '">' + (r.score == null ? '–' : I.esc(r.score)) + '</span><span class="l">점수</span></div>' +
       '<div><span class="v">' + pct.toFixed(0) + '%</span><span class="l">' + fin + '주 진행</span></div></div></div>' +
+      deltaBlock(name) +
       '<div class="gchips">' + mets.map(function (x) {
         return '<button type="button" class="gchip' + (x.k === m.k ? ' on' : '') + '" data-person="' + I.esc(name) + '" data-metric="' + x.k + '"' +
           (x.k === m.k ? ' style="color:' + c + '"' : '') + '>' + x.n + '</button>';
@@ -142,6 +189,7 @@
       '<div class="kv"><div class="l">체지방률</div><div class="v ' + I.judgeClass(r.pbfJ) + '">' + I.fx(r.pbf, 1) + '<small>%</small></div></div>' +
       '<div class="kv"><div class="l">내장지방레벨</div><div class="v ' + (r.vfl != null && r.vfl >= 10 ? 'warn' : '') + '">' + (r.vfl == null ? '–' : I.esc(r.vfl)) + '</div></div>' +
       '</div></div><div class="badges">' + badge('BMI', r.bmiJ) + badge('체지방률', r.pbfJ) + '</div>' +
+      deltaBlock(name) +
       '<div class="goal"><div class="gl">목표까지 남은 조절량 (용지 값)</div><div class="gv"><span>지방 <b class="' + (r.fCtl < 0 ? 'warn' : 'ok') + '">' + I.sgn(r.fCtl, 1) + 'kg</b></span>' +
       '<span>근육 <b class="' + (r.mCtl > 0 ? 'low' : 'ok') + '">' + I.sgn(r.mCtl, 1) + 'kg</b></span></div></div>' +
       '<button type="button" class="gmore" data-go="' + I.esc(name) + '">자세히</button></div>';
@@ -163,7 +211,7 @@
   function renderHome() {
     const D = state.data;
     const maxCm = tallestCm(D.people.map(latest));
-    let h = '<div class="card"><h2>세 사람 체형<small>키와 체지방률</small></h2><div class="trio">' +
+    let h = '<div class="card"><h2>' + peopleWord(D.people.length) + ' 체형<small>키와 체지방률</small></h2><div class="trio">' +
       D.people.map(function (n) {
         const r = latest(n);
         return '<button type="button" class="fig" data-go="' + I.esc(n) + '">' + I.bodySVG(r, colorOf(n), '', maxCm) +
@@ -173,8 +221,10 @@
       const card = goalOf(n) ? goalGraphCard(n) : '';
       h += card || summaryCard(n);
     });
-    h += '<div class="card"><h2>세 사람 비교<small>최근 측정</small></h2>' +
-      cmpBlock('체지방률', 'pbf', '%', 1) + cmpBlock('골격근량', 'smm', 'kg', 1) + cmpBlock('인바디점수', 'score', '점', 0, 100) + '</div>';
+    if (D.people.length > 1) {
+      h += '<div class="card"><h2>' + peopleWord(D.people.length) + ' 비교<small>최근 측정</small></h2>' +
+        cmpBlock('체지방률', 'pbf', '%', 1) + cmpBlock('골격근량', 'smm', 'kg', 1) + cmpBlock('인바디점수', 'score', '점', 0, 100) + '</div>';
+    }
     return h;
   }
 
@@ -200,6 +250,7 @@
     const mets = I.GOAL_METRICS.filter(function (m) { return P.pts[0][m.k] != null && (P.pts[fin] || {})[m.k] != null; });
     let h = '<div class="card"><h2>' + fin + '주 목표<small>' + I.esc(I.shortDate(goals.period.start)) + ' ~ ' + I.esc(I.shortDate(goals.period.end)) + '</small></h2>';
     if (P.goal) h += '<div class="gsent" style="color:' + c + '">' + I.esc(P.goal) + '</div>';
+    h += deltaBlock(name);
     if (horizons.length) {
       h += '<div class="htabs" role="tablist" aria-label="목표 시점">';
       horizons.forEach(function (w) {
@@ -343,16 +394,33 @@
       (r.badminton != null ? '<div class="metric"><span class="n">배드민턴 30분 소비열량</span><span class="a">' + I.fx(r.badminton, 0) + ' kcal</span></div>' : '') +
       '</div>';
     const gap = gapBits(name);
-    h += '<div class="card"><h2>변화<small>' + recs.length + '회 측정</small></h2>' +
-      I.lineChart('체중', recs, 'weight', 'kg', 1, c) +
-      I.lineChart('골격근량', recs, 'smm', 'kg', 1, c) +
-      I.lineChart('체지방률', recs, 'pbf', '%', 1, c) +
+    const bounds = I.periodBounds(state.span, I.todayStr());
+    const trends = I.GOAL_METRICS.filter(function (m) { return m.k === 'weight' || m.k === 'smm' || m.k === 'pbf'; });
+    const anyBand = trends.some(function (m) {
+      const md = goalOf(name) && goalOf(name).mode && goalOf(name).mode[m.k];
+      return md && md.band;
+    });
+    h += '<div class="card"><h2>변화<small>' + recs.length + '회 측정</small></h2>' + spanTabs() +
+      '<div class="glegend"><span><i class="lg-a" style="background:' + c + '"></i>측정</span><span><i class="lg-t"></i>목표선</span>' +
+      (anyBand ? '<span><i class="lg-band"></i>유지 범위</span>' : '') + '</div>' +
+      trends.map(function (m) {
+        const shown = recs.filter(function (r) {
+          if (!r.date || r[m.k] == null) return false;
+          if (bounds.from && r.date < bounds.from) return false;
+          if (bounds.to && r.date > bounds.to) return false;
+          return true;
+        });
+        const md = (goalOf(name) && goalOf(name).mode && goalOf(name).mode[m.k]) || {};
+        return I.lineChart(m.n, recs, m.k, m.u, m.d, c, {
+          from: bounds.from, to: bounds.to, goal: trendGoal(name, m.k, shown, bounds), band: md.band || null
+        }) + '<p class="lc-note">' + I.esc(trendNote(name, m, shown)) + '</p>';
+      }).join('') +
       (gap ? '<div class="gapnote">' + I.esc(gap) + '. 가로축은 날짜라 빈 달이 그대로 넓습니다.</div>' : '') +
-      (recs.length < 2 ? '<div class="rb-sub">측정이 1회라 점 하나만 보입니다.</div>' : '') + '</div>';
-    h += '<div class="card"><h2>측정 기록</h2><table class="hist"><tr><th>날짜</th><th>체중</th><th>골격근</th><th>체지방률</th><th>점수</th></tr>' +
+      (recs.length < 2 ? '<div class="rb-sub">측정이 1회라 변화를 계산하지 않습니다.</div>' : '') + '</div>';
+    h += '<div class="card"><h2>측정 기록</h2><div class="hist-wrap"><table class="hist"><tr><th>날짜</th><th>체중</th><th>골격근</th><th>체지방률</th><th>점수</th></tr>' +
       recs.slice().reverse().map(function (x) {
         return '<tr><td>' + I.esc(x.date || '날짜 없음') + '</td><td>' + I.fx(x.weight, 1) + '</td><td>' + I.fx(x.smm, 1) + '</td><td>' + I.fx(x.pbf, 1) + '</td><td>' + (x.score == null ? '–' : I.esc(x.score)) + '</td></tr>';
-      }).join('') + '</table>' + (r.memo ? '<div class="rb-sub" style="margin-top:8px">메모: ' + I.esc(r.memo) + '</div>' : '') + '</div>';
+      }).join('') + '</table></div>' + (r.memo ? '<div class="rb-sub" style="margin-top:8px">메모: ' + I.esc(r.memo) + '</div>' : '') + '</div>';
     return h;
   }
 
@@ -368,22 +436,49 @@
     t.innerHTML = h;
   }
 
+  function problemTitle() {
+    const code = state.problem && state.problem.code;
+    if (code === 'need-key') return '시트 주소 없음';
+    if (code === 'schema') return '열을 읽지 못함';
+    if (code === 'network') return '불러오지 못함';
+    return '측정 없음';
+  }
+  function problemHtml() {
+    const p = state.problem || { code: 'empty', message: '' };
+    if (p.code === 'need-key') {
+      return '<div class="empty"><p class="empty-title">시트 주소가 없습니다</p><p>받은 주소 전체(#k= 까지)로 다시 열어 주세요. 한 번 열면 이 브라우저가 그 주소를 기억합니다.</p></div>';
+    }
+    if (p.code === 'empty') {
+      return '<div class="empty"><p class="empty-title">측정 행이 없습니다</p><p>시트는 열렸지만 표시할 측정이 없습니다. 측정 탭 맨 아래에 한 줄을 적은 뒤 새로고침을 눌러 주세요.</p></div>';
+    }
+    if (p.code === 'schema') {
+      return '<div class="empty"><p class="empty-title">시트 열을 읽지 못했습니다</p><p>' + I.esc(p.message) + '</p></div>';
+    }
+    return '<div class="empty"><p class="empty-title">시트를 불러오지 못했습니다</p><p>' + I.esc(p.message || '인터넷 연결과 시트 공유를 확인해 주세요.') + '</p><p>이 기기에 저장본이 있으면 그 값을 대신 보여 줍니다.</p></div>';
+  }
+  function noticeHtml() {
+    if (!state.notice || state.demo) return '';
+    return '<div class="notice" role="status">' + I.esc(state.notice) + '</div>';
+  }
+
   function render() {
     const D = state.data;
     if (D && state.tab !== 'home' && !D.by[state.tab]) state.tab = 'home';
     renderTabs();
     if (!D) {
-      $('subtitle').textContent = state.demo ? '데모' : '측정 없음';
-      $('panel').innerHTML = '<div class="empty">' + (DEMO
-        ? '예시 데이터를 준비하지 못했습니다.'
-        : '표시할 측정이 없습니다. 주소 끝의 #k= 를 확인하거나, ?demo=1 로 예시를 볼 수 있습니다.') + '</div>';
+      $('subtitle').textContent = state.demo ? '데모' : problemTitle();
+      $('panel').innerHTML = state.demo
+        ? '<div class="empty"><p class="empty-title">예시를 준비하지 못했습니다</p></div>'
+        : problemHtml();
     } else {
       const dates = [];
       D.people.forEach(function (n) { D.by[n].forEach(function (x) { if (x.date) dates.push(x.date); }); });
       dates.sort();
       $('subtitle').textContent = D.people.join(' · ') + (dates.length ? ' · 최근 ' + dates[dates.length - 1] : '');
-      $('panel').innerHTML = state.tab === 'home' ? renderHome() : renderPerson(state.tab);
+      $('panel').innerHTML = noticeHtml() + (state.tab === 'home' ? renderHome() : renderPerson(state.tab));
     }
+    const how = $('howTo');
+    if (how && !D) how.open = true;
     const note = $('modeNote');
     if (note) {
       note.textContent = state.demo
@@ -404,11 +499,23 @@
     state.goals = I.buildGoals(src.goalRows);
     state.sheetId = '';
     state.demo = true;
+    state.problem = null;
+    state.notice = '';
     setSync('데모');
     const btn = $('syncBtn');
     btn.disabled = false;
     btn.textContent = '새로고침';
     render();
+  }
+
+  function loadPair(id, gid) {
+    const measureP = I.loadMeasurements(id, gid);
+    const goalP = I.loadGoalTable(id).then(function (goals) {
+      return goals;
+    }, function () { return null; });
+    return measureP.then(function (data) {
+      return goalP.then(function (goals) { return { data: data, goals: goals }; });
+    });
   }
 
   async function sync(manual) {
@@ -427,55 +534,66 @@
         state.goals = null;
         state.sheetId = '';
         state.demo = false;
+        state.notice = '';
+        state.problem = { code: 'need-key', message: '' };
         setSync('시트 주소 없음');
         if (manual) window.alert('시트 주소가 없어요.\n받은 주소 전체(#k= 까지)로 다시 열어 주세요.');
         render();
         return;
       }
       let used = '';
-      let data = null;
+      let loaded = null;
       let hashErr = null;
       if (hashK) {
-        try { data = await I.loadMeasurements(hashK, hash.g); used = hashK; }
+        try { loaded = await loadPair(hashK, hash.g); used = hashK; }
         catch (e) { hashErr = e; }
       }
-      if (!data && savedK && savedK !== hashK) {
-        try { data = await I.loadMeasurements(savedK, hash.g); used = savedK; }
+      if (!loaded && savedK && savedK !== hashK) {
+        try { loaded = await loadPair(savedK, hash.g); used = savedK; }
         catch (e) { if (!hashErr) hashErr = e; }
       }
       if (seq !== syncGen) return;
-      if (!data) throw hashErr || new Error('불러오지 못했어요');
-      let goals = null;
-      try { goals = await I.loadGoalTable(used); }
-      catch (e) { goals = cachedGoals(used); }
-      if (seq !== syncGen) return;
+      if (!loaded) throw hashErr || failLoad('불러오지 못했어요');
+      const data = loaded.data;
+      let goals = loaded.goals || cachedGoals(used);
       const at = stamp();
       lsSet(LS_KEY, used);
       lsSet(LS_CACHE, JSON.stringify({ id: used, at: at, data: data }));
-      if (goals) lsSet(LS_GOALS, JSON.stringify({ id: used, goals: goals }));
+      if (loaded.goals) lsSet(LS_GOALS, JSON.stringify({ id: used, goals: loaded.goals }));
       state.data = data;
       state.goals = goals;
       state.sheetId = used;
       state.demo = false;
+      state.problem = null;
+      state.notice = '';
       setSync((hashK && used !== hashK ? '저장된 시트 · ' : '시트 최신 ') + at);
       render();
     } catch (e) {
       if (seq !== syncGen) return;
       const cache = loadCache();
       const can = cache && cache.data && (!hashK || cache.id === hashK || cache.id === savedK);
+      const why = e && e.message ? e.message : '시트를 불러오지 못했어요';
       if (can) {
         state.data = cache.data;
         state.sheetId = cache.id;
         state.goals = cachedGoals(cache.id);
         state.demo = false;
-        setSync('오프라인 · 저장본 ' + (cache.at || ''));
+        state.problem = null;
+        state.notice = (e && e.code === 'schema')
+          ? '시트 열을 읽지 못했습니다. 이 기기에 저장된 값을 보여 줍니다. ' + why
+          : '지금 시트를 불러오지 못했습니다. 이 기기에 저장된 값을 보여 줍니다.';
+        setSync('저장본 ' + (cache.at || ''));
       } else if (!state.data) {
         state.goals = null;
+        state.notice = '';
+        state.problem = { code: (e && e.code) || 'network', message: why };
         setSync('시트를 불러오지 못했어요');
       } else {
-        setSync('오프라인 · 저장본');
+        state.problem = null;
+        state.notice = '시트를 다시 불러오지 못했습니다. 화면에 있던 값을 그대로 둡니다.';
+        setSync('저장본');
       }
-      if (manual) window.alert('시트를 불러오지 못했어요.\n' + (e && e.message ? e.message : e) + '\n\n인터넷 연결과 시트 공유를 확인해 주세요.');
+      if (manual) window.alert('시트를 불러오지 못했어요.\n' + why + '\n\n인터넷 연결과 시트 공유를 확인해 주세요.');
       render();
     } finally {
       if (seq === syncGen) {
@@ -485,6 +603,12 @@
     }
   }
 
+  function failLoad(message) {
+    const e = new Error(message);
+    e.code = 'network';
+    return e;
+  }
+
   $('tabs').addEventListener('click', function (e) {
     const b = e.target.closest('[data-tab]');
     if (!b) return;
@@ -492,17 +616,28 @@
     render();
     window.scrollTo(0, 0);
   });
+  function rerenderStay() {
+    const y = window.scrollY;
+    render();
+    window.scrollTo(0, y);
+  }
   $('panel').addEventListener('click', function (e) {
     const metric = e.target.closest('[data-metric]');
     if (metric) {
       state.gm[metric.getAttribute('data-person')] = metric.getAttribute('data-metric');
-      render();
+      rerenderStay();
       return;
     }
     const hz = e.target.closest('[data-hz]');
     if (hz) {
       state.hz[hz.getAttribute('data-who')] = +hz.getAttribute('data-hz');
-      render();
+      rerenderStay();
+      return;
+    }
+    const span = e.target.closest('[data-span]');
+    if (span) {
+      state.span = span.getAttribute('data-span');
+      rerenderStay();
       return;
     }
     const go = e.target.closest('[data-go]');

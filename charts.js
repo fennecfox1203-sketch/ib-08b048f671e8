@@ -16,7 +16,7 @@
       '<circle cx="66" cy="66" r="' + r + '" fill="none" stroke="#0e131a" stroke-width="14"/>' +
       '<circle cx="66" cy="66" r="' + r + '" fill="none" stroke="' + color + '" stroke-width="14" stroke-linecap="round" stroke-dasharray="' + d.toFixed(1) + ' ' + (c - d).toFixed(1) + '" transform="rotate(-90 66 66)"/>' +
       '<text x="66" y="70" text-anchor="middle" font-size="38" font-weight="800" fill="#e8eef7">' + label + '</text>' +
-      '<text x="66" y="94" text-anchor="middle" font-size="13" fill="#8b97a8">/100점</text></svg>';
+      '<text x="66" y="94" text-anchor="middle" font-size="13" fill="#d5deea">/100점</text></svg>';
   }
 
   function rangeBar(o) {
@@ -55,9 +55,9 @@
         '<rect x="0" y="18" width="' + vx.toFixed(1) + '" height="8" rx="2" fill="' + fc + '"/>' +
         '<line x1="' + a.toFixed(1) + '" y1="10" x2="' + a.toFixed(1) + '" y2="34" stroke="#6b7a90" stroke-width="1"/>' +
         '<line x1="' + b.toFixed(1) + '" y1="10" x2="' + b.toFixed(1) + '" y2="34" stroke="#6b7a90" stroke-width="1"/>' +
-        '<text x="' + ((a + b) / 2).toFixed(1) + '" y="10" font-size="10" text-anchor="middle" fill="#8b97a8">표준</text>' +
-        '<text x="' + a.toFixed(1) + '" y="46" font-size="11" text-anchor="' + anchor(a) + '" fill="#9aa6b8">' + (o.labels ? esc(o.labels[0]) : fx(r[0], o.rd == null ? d : o.rd)) + '</text>' +
-        '<text x="' + b.toFixed(1) + '" y="46" font-size="11" text-anchor="' + anchor(b) + '" fill="#9aa6b8">' + (o.labels ? esc(o.labels[1]) : fx(r[1], o.rd == null ? d : o.rd)) + '</text>' +
+        '<text x="' + ((a + b) / 2).toFixed(1) + '" y="10" font-size="12" text-anchor="middle" fill="#d5deea">표준</text>' +
+        '<text x="' + a.toFixed(1) + '" y="46" font-size="12" text-anchor="' + anchor(a) + '" fill="#d5deea">' + (o.labels ? esc(o.labels[0]) : fx(r[0], o.rd == null ? d : o.rd)) + '</text>' +
+        '<text x="' + b.toFixed(1) + '" y="46" font-size="12" text-anchor="' + anchor(b) + '" fill="#d5deea">' + (o.labels ? esc(o.labels[1]) : fx(r[1], o.rd == null ? d : o.rd)) + '</text>' +
         '</svg>';
     } else if (o.noRange) {
       svg = '<div class="rb-sub">' + esc(o.noRange) + '</div>';
@@ -67,37 +67,65 @@
       (o.note ? '<div class="rb-sub">' + o.note + '</div>' : '') + '</div>';
   }
 
-  function lineChart(title, recs, key, unit, d, color) {
+  function lineChart(title, recs, key, unit, d, color, opt) {
     const esc = I().esc;
     const fx = I().fx;
     const dayDiff = I().dayDiff;
     const shortDate = I().shortDate;
     const monthSpan = I().monthSpan;
     const addDays = I().addDays;
-    const pts = (recs || []).filter(function (r) { return r[key] != null && r.date; })
+    opt = opt || {};
+    const inRange = function (date) {
+      if (!date) return false;
+      if (opt.from && date < opt.from) return false;
+      if (opt.to && date > opt.to) return false;
+      return true;
+    };
+    const pts = (recs || []).filter(function (r) { return r[key] != null && r.date && inRange(r.date); })
       .slice()
       .sort(function (a, b) { return a.date.localeCompare(b.date) || String(a.time || '').localeCompare(String(b.time || '')); });
+    const goal = (opt.goal || []).filter(function (g) { return g && g.date && inRange(g.date) && finite(g.v); })
+      .slice()
+      .sort(function (a, b) { return a.date.localeCompare(b.date); });
+    const band = opt.band && finite(opt.band[0]) && finite(opt.band[1]) ? opt.band : null;
     const last = pts.length ? pts[pts.length - 1][key] : null;
-    const head = '<div class="t"><span>' + esc(title) + '</span><span class="num">' + fx(last, d) + ' ' + esc(unit) + '</span></div>';
-    if (!pts.length) return '<div class="lc">' + head + '<div class="muted" style="font-size:.85rem">값 없음</div></div>';
+    let deltaTxt = '';
+    if (pts.length >= 2) {
+      const p10 = Math.pow(10, d);
+      const dv = Math.round((pts[pts.length - 1][key] - pts[0][key]) * p10) / p10;
+      const eps = d === 0 ? 0.5 : 0.05;
+      deltaTxt = Math.abs(dv) < eps ? '변화 없음' : Math.abs(dv).toFixed(d) + (dv < 0 ? ' 감소' : ' 증가');
+    }
+    const head = '<div class="t"><span>' + esc(title) + '</span><span class="num">' +
+      (last == null ? '–' : fx(last, d) + ' ' + esc(unit)) +
+      (deltaTxt ? '<span class="chg">' + esc(deltaTxt) + '</span>' : '') + '</span></div>';
+    if (!pts.length && goal.length < 2 && !band) return '<div class="lc">' + head + '</div>';
 
     const W = 320;
-    const H = 148;
-    const pl = 36;
-    const pr = 12;
-    const pt = 18;
-    const pb = 28;
-    let mn = Math.min.apply(null, pts.map(function (p) { return p[key]; }));
-    let mx = Math.max.apply(null, pts.map(function (p) { return p[key]; }));
+    const H = 168;
+    const pl = 48;
+    const pr = 22;
+    const pt = 22;
+    const pb = 34;
+    const ys = pts.map(function (p) { return p[key]; }).concat(goal.map(function (g) { return g.v; }));
+    if (band) ys.push(band[0], band[1]);
+    let mn = Math.min.apply(null, ys.filter(finite));
+    let mx = Math.max.apply(null, ys.filter(finite));
     if (!finite(mn) || !finite(mx)) return '<div class="lc">' + head + '</div>';
-    if (mx - mn < 0.6) { const c = (mx + mn) / 2; mn = c - 0.6; mx = c + 0.6; }
+    if (mx - mn < 0.6) { const mid = (mx + mn) / 2; mn = mid - 0.6; mx = mid + 0.6; }
     else { const pad = (mx - mn) * 0.18; mn -= pad; mx += pad; }
-    const d0 = pts[0].date;
-    const d1 = pts[pts.length - 1].date;
+    const dates = [];
+    if (opt.from) dates.push(opt.from);
+    if (opt.to) dates.push(opt.to);
+    pts.forEach(function (p) { dates.push(p.date); });
+    goal.forEach(function (g) { dates.push(g.date); });
+    dates.sort();
+    const d0 = dates[0];
+    const d1 = dates[dates.length - 1];
     const span = Math.max(1, dayDiff(d0, d1) || 1);
     const plotW = W - pl - pr;
     const Xd = function (date) {
-      if (pts.length === 1 || d0 === d1) return pl + plotW / 2;
+      if (!date || d0 === d1) return pl + plotW / 2;
       const along = dayDiff(d0, date);
       if (along == null) return pl;
       return pl + plotW * Math.max(0, Math.min(1, along / span));
@@ -105,13 +133,20 @@
     const Y = function (v) { return pt + (H - pt - pb) * (1 - (v - mn) / (mx - mn)); };
     const months = monthSpan(d0, d1);
     const showMonths = months.length >= 2;
-    let s = '<svg viewBox="0 0 ' + W + ' ' + H + '" role="img" aria-label="' + esc(title) + ' 변화">';
+    const aria = esc(title) + (deltaTxt ? ', ' + esc(deltaTxt) : '') + (goal.length > 1 ? ', 목표선' : '') + (band ? ', 유지 범위' : '');
+    let s = '<svg viewBox="0 0 ' + W + ' ' + H + '" role="img" aria-label="' + aria + '">';
     [mn, (mn + mx) / 2, mx].forEach(function (v) {
       const y = Y(v);
-      s += '<line x1="' + pl + '" x2="' + (W - pr) + '" y1="' + y.toFixed(1) + '" y2="' + y.toFixed(1) + '" stroke="#2a3444"/>';
-      s += '<text x="' + (pl - 4) + '" y="' + (y + 3).toFixed(1) + '" font-size="10" text-anchor="end" fill="#8b97a8">' + fx(v, d) + '</text>';
+      s += '<line x1="' + pl + '" x2="' + (W - pr) + '" y1="' + y.toFixed(1) + '" y2="' + y.toFixed(1) + '" stroke="#3a4658"/>';
+      s += '<text x="' + (pl - 6) + '" y="' + (y + 4).toFixed(1) + '" font-size="12" text-anchor="end" fill="#d5deea">' + fx(v, d) + '</text>';
     });
+    if (band) {
+      const y0 = Y(band[0]);
+      const y1 = Y(band[1]);
+      s += '<rect x="' + pl + '" y="' + Math.min(y0, y1).toFixed(1) + '" width="' + plotW + '" height="' + Math.abs(y0 - y1).toFixed(1) + '" fill="rgba(61,214,140,.16)"/>';
+    }
     if (showMonths) {
+      let lastLabel = -999;
       months.forEach(function (ym) {
         const start = ym + '-01';
         const next = addDays(ym.slice(0, 4) + '-' + ym.slice(5) + '-01', 32);
@@ -122,32 +157,41 @@
         const x2 = Xd(b);
         const empty = !pts.some(function (p) { return p.date.slice(0, 7) === ym; });
         if (empty && x2 > x1) {
-          s += '<rect x="' + x1.toFixed(1) + '" y="' + pt + '" width="' + (x2 - x1).toFixed(1) + '" height="' + (H - pt - pb) + '" fill="rgba(255,176,32,.07)"/>';
+          s += '<rect x="' + x1.toFixed(1) + '" y="' + pt + '" width="' + (x2 - x1).toFixed(1) + '" height="' + (H - pt - pb) + '" fill="rgba(255,176,32,.10)"/>';
         }
         const mid = Xd(dayDiff(a, b) ? addDays(a, Math.round((dayDiff(a, b) || 0) / 2)) : a);
-        s += '<text x="' + mid.toFixed(1) + '" y="' + (H - 8) + '" font-size="10" text-anchor="middle" fill="' + (empty ? '#ffb020' : '#8b97a8') + '">' + (+ym.slice(5)) + '월' + (empty ? ' ·' : '') + '</text>';
+        if (mid - lastLabel < 36) return;
+        lastLabel = mid;
+        s += '<text x="' + mid.toFixed(1) + '" y="' + (H - 10) + '" font-size="12" text-anchor="middle" fill="' + (empty ? '#ffb020' : '#d5deea') + '">' + (+ym.slice(5)) + '월' + (empty ? ' ·' : '') + '</text>';
       });
+    }
+    if (goal.length > 1) {
+      s += '<polyline fill="none" stroke="#d5deea" stroke-width="2" stroke-dasharray="5 4" stroke-linejoin="round" stroke-linecap="round" points="' +
+        goal.map(function (g) { return Xd(g.date).toFixed(1) + ',' + Y(g.v).toFixed(1); }).join(' ') + '"/>';
     }
     const seen = {};
     const coords = pts.map(function (p) {
       const n = seen[p.date] || 0;
       seen[p.date] = n + 1;
-      const x = Xd(p.date) + (pts.length === 1 ? (n - (seen[p.date] - 1) / 2) * 8 : n * 6);
+      const x = Xd(p.date) + (pts.length === 1 ? 0 : n * 6);
       return { p: p, x: x, y: Y(p[key]) };
     });
     if (coords.length > 1) {
       s += '<polyline fill="none" stroke="' + color + '" stroke-width="3" stroke-linejoin="round" stroke-linecap="round" points="' +
         coords.map(function (c) { return c.x.toFixed(1) + ',' + c.y.toFixed(1); }).join(' ') + '"/>';
     }
+    let lastValueX = -999;
     coords.forEach(function (c, i) {
       s += '<circle data-date="' + esc(c.p.date) + '" cx="' + c.x.toFixed(1) + '" cy="' + c.y.toFixed(1) + '" r="4.5" fill="' + color + '"/>';
       if (!showMonths) {
-        s += '<text x="' + c.x.toFixed(1) + '" y="' + (H - 8) + '" font-size="10" text-anchor="middle" fill="#8b97a8">' + esc(shortDate(c.p.date)) + '</text>';
+        s += '<text x="' + c.x.toFixed(1) + '" y="' + (H - 10) + '" font-size="12" text-anchor="middle" fill="#d5deea">' + esc(shortDate(c.p.date)) + '</text>';
       }
-      if (pts.length <= 4) {
-        s += '<text x="' + c.x.toFixed(1) + '" y="' + Math.max(12, c.y - 8).toFixed(1) + '" font-size="11" font-weight="700" text-anchor="middle" fill="#e8eef7">' + fx(c.p[key], d) + '</text>';
+      const edge = i === 0 || i === coords.length - 1;
+      if ((pts.length <= 4 || edge) && c.x - lastValueX >= 28) {
+        lastValueX = c.x;
+        const anchor = i === 0 && c.x < pl + 20 ? 'start' : (i === coords.length - 1 && c.x > W - pr - 20 ? 'end' : 'middle');
+        s += '<text x="' + c.x.toFixed(1) + '" y="' + Math.max(14, c.y - 8).toFixed(1) + '" font-size="13" font-weight="700" text-anchor="' + anchor + '" fill="#e8eef7">' + fx(c.p[key], d) + '</text>';
       }
-      void i;
     });
     s += '</svg>';
     return '<div class="lc">' + head + s + '</div>';
@@ -165,10 +209,10 @@
     if (tp.length < 2) return '';
     const W = 340;
     const H = 236;
-    const L = 34;
-    const R = 12;
+    const L = 44;
+    const R = 26;
     const T = 28;
-    const B = 42;
+    const B = 48;
     const pw = W - L - R;
     const ph = H - T - B;
     const d0 = tp[0].date;
@@ -229,8 +273,8 @@
         let n = 0;
         for (let v = Math.ceil(lo / stp) * stp; v <= hi + 1e-9 && n < 8; v += stp, n++) {
           const y = Y(v);
-          s += '<line x1="' + L + '" x2="' + (L + pw) + '" y1="' + y.toFixed(1) + '" y2="' + y.toFixed(1) + '" stroke="#222b38"/>';
-          s += '<text x="' + (L - 4) + '" y="' + (y + 3).toFixed(1) + '" font-size="9" fill="#6f7b8c" text-anchor="end">' + fx(v, tdec) + '</text>';
+          s += '<line x1="' + L + '" x2="' + (L + pw) + '" y1="' + y.toFixed(1) + '" y2="' + y.toFixed(1) + '" stroke="#3a4658"/>';
+          s += '<text x="' + (L - 6) + '" y="' + (y + 4).toFixed(1) + '" font-size="12" fill="#d5deea" text-anchor="end">' + fx(v, tdec) + '</text>';
         }
       }
     }
@@ -249,8 +293,8 @@
       const x = X(p.date);
       const on = ncp && p.w === ncp.w;
       s += '<line x1="' + x.toFixed(1) + '" x2="' + x.toFixed(1) + '" y1="' + T + '" y2="' + (T + ph) + '" stroke="#1d2531"/>';
-      s += '<text x="' + x.toFixed(1) + '" y="' + (T + ph + 15) + '" font-size="10" font-weight="700" fill="' + (on ? '#7c9cff' : '#aab4c3') + '" text-anchor="middle">' + (p.w === 0 ? '시작' : p.w + '주') + '</text>';
-      s += '<text x="' + x.toFixed(1) + '" y="' + (T + ph + 28) + '" font-size="9" fill="' + (on ? '#7c9cff' : '#6f7b8c') + '" text-anchor="middle">' + esc(shortDate(p.date)) + '</text>';
+      s += '<text x="' + x.toFixed(1) + '" y="' + (T + ph + 16) + '" font-size="12" font-weight="700" fill="' + (on ? '#7c9cff' : '#d5deea') + '" text-anchor="middle">' + (p.w === 0 ? '시작' : p.w + '주') + '</text>';
+      s += '<text x="' + x.toFixed(1) + '" y="' + (T + ph + 32) + '" font-size="11" fill="' + (on ? '#9eb0ff' : '#d5deea') + '" text-anchor="middle">' + esc(shortDate(p.date)) + '</text>';
     });
     s += '<polyline points="' + tp.map(function (p) { return X(p.date).toFixed(1) + ',' + Y(p.v).toFixed(1); }).join(' ') + '" fill="none" stroke="#8d99ab" stroke-width="1.6" stroke-dasharray="4 4" stroke-linecap="round"/>';
     if (act.length > 1) {

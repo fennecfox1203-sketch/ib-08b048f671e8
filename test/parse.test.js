@@ -123,7 +123,7 @@ assert.ok(/bf-over" style="opacity:0\.400/.test(mid) && /bf20\.webp/.test(mid), 
 const exact = I.bodySVG({ pbf: 20, height: 180 }, '#7c9cff', '', 180);
 assert.ok(exact.indexOf('bf-over') < 0 && /bf20\.webp\?v=20261007/.test(exact), 'exact anchor is one opaque picture');
 const html = fs.readFileSync(path.join(root, 'index.html'), 'utf8');
-assert.ok(html.indexOf('styles.css?v=20261007') >= 0 && html.indexOf('app.js?v=20261007') >= 0, 'cache bust');
+assert.ok(html.indexOf('styles.css?v=20261011') >= 0 && html.indexOf('app.js?v=20261011') >= 0, 'cache bust');
 const shape = I.bodyShape(round);
 assert.ok(shape.f > 0.85, 'high body fat is round ' + shape.f);
 assert.ok(shape.m < 0.7, 'muscle stays skeletal ' + shape.m);
@@ -146,5 +146,65 @@ assert.ok(data.by.A[0].height === 183 && data.by.B[0].height === 180 && data.by.
   assert.ok(!/spreadsheets\/d\/[A-Za-z0-9_-]{20,}/.test(text), file + ' has a sheet id');
 });
 assert.ok(!/docs\.google\.com/.test(fs.readFileSync(path.join(root, 'demo.js'), 'utf8')), 'demo must not reference sheets');
+
+eq(I.normH('체중（kg）'), '체중', 'fullwidth paren');
+eq(I.normH('체중*'), '체중', 'star header');
+const withTitle = [['이 줄은 제목입니다']].concat(src.measureRows);
+eq(I.buildData(withTitle).count, 8, 'title row skipped');
+const renamed = src.measureRows.map(function (r) { return r.slice(); });
+renamed[0][renamed[0].indexOf('이름')] = '성명';
+renamed[0][renamed[0].indexOf('체중')] = '체중(kg)';
+renamed[0][renamed[0].indexOf('체지방률')] = '체지방율';
+const renamedData = I.buildData(renamed.map(function (r) { return r.slice().reverse(); }));
+eq(renamedData.by.A[0].weight, 84, 'renamed reversed weight');
+eq(renamedData.by.A[0].pbf, 16.8, 'renamed pbf');
+eq(renamedData.by.A[0].date, '2026-08-12', 'renamed date');
+eq(renamedData.by.A[0].seg.m[0], '표준', 'segment follows header');
+assert.deepStrictEqual(renamedData.people, ['A', 'B', 'C']);
+const noW = src.measureRows.map(function (r) { return r.slice(); });
+const wi = noW[0].indexOf('체중');
+noW.forEach(function (r) { r.splice(wi, 1); });
+assert.throws(function () { I.buildData(noW); }, function (e) { return e.code === 'schema' && /체중/.test(e.message); });
+assert.throws(function () { I.buildData([src.measureRows[0]]); }, function (e) { return e.code === 'empty'; });
+assert.throws(function () { I.buildData([['값'], ['1']]); }, function (e) { return e.code === 'schema'; });
+
+const summary = I.changeSummary(data.by.A);
+eq(summary.sentence, '8/12 이후 체중은 2.8kg 줄고, 체지방률은 4.4%p 줄고, 골격근량은 0.2kg 늘었습니다.');
+eq(summary.latest, '8/26보다 체중은 1.2kg 줄고, 체지방률은 2.2%p 줄고, 골격근량은 0.1kg 늘었습니다.');
+eq(I.changeSummary(data.by.A.slice(0, 1)).sentence, '');
+const flat = I.changeSummary([
+  { date: '2026-01-01', weight: 70, pbf: 20, smm: 30 },
+  { date: '2026-02-01', weight: 70, pbf: null, smm: 30.4 }
+]);
+eq(flat.sentence, '1/1 이후 체중은 그대로이고, 골격근량은 0.4kg 늘었습니다.');
+assert.deepStrictEqual(I.periodBounds('all', '2026-10-11'), { from: '', to: '' });
+assert.deepStrictEqual(I.periodBounds('4', '2026-10-11'), { from: '2026-09-13', to: '2026-10-11' });
+assert.deepStrictEqual(I.periodBounds('12', '2026-10-11'), { from: '2026-07-19', to: '2026-10-11' });
+
+const weightPath = I.goalPath(goals, 'A', 'weight');
+const clipped = I.clipPath(weightPath, '2026-08-12', '2026-10-05');
+eq(clipped[0].date, '2026-08-12');
+eq(clipped[0].v, 84);
+eq(clipped[clipped.length - 1].date, '2026-10-05');
+assert.ok(Math.abs(clipped[clipped.length - 1].v - 80.6) < 0.05, 'clipped end ' + clipped[clipped.length - 1].v);
+const behind = data.by.A[2];
+const target = I.pathAt(weightPath, behind.date);
+const ahead = I.onTrack(goals.people.A, weight, weightPath, behind.date, behind.weight);
+eq(ahead, false);
+const gapText = I.goalGapText(weight, behind.weight, target, ahead, {});
+assert.ok(gapText.indexOf('뒤처집니다') >= 0, gapText);
+const bandText = I.goalGapText(weight, 70.6, 70, true, { band: [68, 72] });
+assert.ok(bandText.indexOf('68~72') >= 0 && bandText.indexOf('안입니다') >= 0, bandText);
+
+const withGoal = I.lineChart('체중', data.by.A, 'weight', 'kg', 1, '#6aa8ff', { goal: clipped });
+assert.ok(withGoal.indexOf('stroke-dasharray') >= 0, 'goal line');
+assert.ok(withGoal.indexOf('NaN') < 0 && withGoal.indexOf('Infinity') < 0, 'goal line finite');
+assert.ok(withGoal.indexOf('2.8 감소') >= 0, 'delta in chart header');
+const zoom = I.lineChart('체중', data.by.A, 'weight', 'kg', 1, '#6aa8ff', { from: '2026-09-13', to: '2026-10-11' });
+assert.ok(zoom.indexOf('data-date="2026-08-12"') < 0, '4주 hides August');
+assert.ok(zoom.indexOf('data-date="2026-10-05"') >= 0, '4주 keeps October');
+assert.ok(zoom.indexOf('변화 없음') < 0, 'one point is not called unchanged');
+const bandSvg = I.lineChart('체중', data.by.C, 'weight', 'kg', 1, '#ff8fc7', { band: [68, 72] });
+assert.ok(bandSvg.indexOf('rgba(61,214,140') >= 0 && bandSvg.indexOf('NaN') < 0, 'maintain band');
 
 console.log('ok ' + data.count + ' rows, week8 ' + goals.people.A.pts[8].weight + ', gap ratio ' + ratio.toFixed(3));

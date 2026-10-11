@@ -16,21 +16,21 @@
     { k: 'score', n: '점수', u: '점', d: 0, low: false }
   ];
   const COLS = {
-    name: ['이름', '성명'], date: ['측정일', '날짜', '검사일'], time: ['시각', '시간', '측정시각'],
+    name: ['이름', '성명', '성함', '측정자', 'name'], date: ['측정일', '날짜', '검사일', '측정날짜', '검사날짜', 'date'], time: ['시각', '시간', '측정시각'],
     height: ['키', '신장'], age: ['나이', '연령'], sex: ['성별'], place: ['장소'], device: ['기기'],
-    weight: ['체중'], weightR: ['체중범위'], smm: ['골격근량', '골격근'], bfm: ['체지방량'], bfmR: ['체지방량범위'],
-    pbf: ['체지방률'], bmi: ['BMI'], score: ['인바디점수', '점수'],
+    weight: ['체중', 'weight'], weightR: ['체중범위'], smm: ['골격근량', '골격근', 'smm'], bfm: ['체지방량'], bfmR: ['체지방량범위'],
+    pbf: ['체지방률', '체지방율', 'pbf'], bmi: ['BMI'], score: ['인바디점수', '점수'],
     tbw: ['체수분'], tbwR: ['체수분범위'], protein: ['단백질'], proteinR: ['단백질범위'], mineral: ['무기질'], mineralR: ['무기질범위'],
     target: ['적정체중'], wCtl: ['체중조절'], fCtl: ['지방조절'], mCtl: ['근육조절'],
-    bmiJ: ['BMI판정'], pbfJ: ['체지방률판정'], whr: ['복부지방률'], vfl: ['내장지방레벨', '내장지방'],
+    bmiJ: ['BMI판정'], pbfJ: ['체지방률판정', '체지방율판정'], whr: ['복부지방률'], vfl: ['내장지방레벨', '내장지방'],
     ffm: ['제지방량'], bmr: ['기초대사량'], bmrR: ['기초대사량범위'], obes: ['비만도'], obesR: ['비만도범위'], kcal: ['권장섭취열량'],
     mLA: ['근육왼팔'], mRA: ['근육오른팔'], mTR: ['근육몸통'], mLL: ['근육왼다리'], mRL: ['근육오른다리'],
     fLA: ['지방왼팔'], fRA: ['지방오른팔'], fTR: ['지방몸통'], fLL: ['지방왼다리'], fRL: ['지방오른다리'],
     badminton: ['배드민턴'], memo: ['메모']
   };
   const GCOLS = {
-    name: ['이름'], when: ['시점'], date: ['날짜'], goal: ['목표문장'],
-    weight: ['체중'], smm: ['골격근량', '골격근'], pbf: ['체지방률'], vfl: ['내장지방', '내장지방레벨'], score: ['점수', '인바디점수'],
+    name: ['이름', '성명', '성함', 'name'], when: ['시점', '주차'], date: ['날짜', 'date'], goal: ['목표문장'],
+    weight: ['체중', 'weight'], smm: ['골격근량', '골격근', 'smm'], pbf: ['체지방률', '체지방율', 'pbf'], vfl: ['내장지방', '내장지방레벨'], score: ['점수', '인바디점수'],
     key: ['설정', '항목'], val: ['값']
   };
 
@@ -46,7 +46,13 @@
   }
 
   function normH(s) {
-    return clean(s).replace(/\(.*?\)/g, '').replace(/\s+/g, '').toUpperCase();
+    return clean(s).replace(/[(（].*?[)）]/g, '').replace(/[*＊※]/g, '').replace(/\s+/g, '').toUpperCase();
+  }
+
+  function fail(message, code) {
+    const e = new Error(message);
+    e.code = code;
+    return e;
   }
 
   function esc(s) {
@@ -258,14 +264,40 @@
     return head.findIndex(function (h) { return want.indexOf(h) >= 0; });
   }
 
+  function scoreHeader(row, groups) {
+    const cells = (row || []).map(normH);
+    const idx = {};
+    let n = 0;
+    Object.keys(groups).forEach(function (k) {
+      const i = colIndex(cells, groups[k]);
+      idx[k] = i;
+      if (i >= 0) n += 1;
+    });
+    return { idx: idx, n: n };
+  }
+
+  /* 머리글 행은 칸 순서가 아니라 이름으로 찾는다. 같은 표 안에서 이름이 가장 많이 맞는 줄을 고른다. */
+  function findHeader(list, groups, nameKey) {
+    let best = -1;
+    let bestN = 0;
+    let bestIdx = null;
+    (list || []).forEach(function (row, i) {
+      const h = scoreHeader(row, groups);
+      if (h.idx[nameKey] < 0 || h.n < 2 || h.n <= bestN) return;
+      best = i;
+      bestN = h.n;
+      bestIdx = h.idx;
+    });
+    return { index: best, idx: bestIdx };
+  }
+
   function buildData(rows) {
     const list = rows || [];
-    const hi = list.findIndex(function (r) { return (r || []).some(function (c) { return normH(c) === '이름'; }); });
-    if (hi < 0) throw new Error('‘측정’ 탭에서 ‘이름’ 머리글을 찾지 못했어요.');
-    const head = list[hi].map(normH);
-    const idx = {};
-    Object.keys(COLS).forEach(function (k) { idx[k] = colIndex(head, COLS[k]); });
-    if (idx.weight < 0) throw new Error('‘측정’ 탭에서 ‘체중’ 열을 찾지 못했어요.');
+    const found = findHeader(list, COLS, 'name');
+    if (found.index < 0) throw fail('‘측정’ 탭에서 ‘이름’ 머리글을 찾지 못했어요. 열 순서는 바뀌어도 되고, 머리글 이름은 이름·성명과 체중이어야 합니다.', 'schema');
+    const hi = found.index;
+    const idx = found.idx;
+    if (idx.weight < 0) throw fail('‘체중’ 열을 찾지 못했어요. 열 순서는 바뀌어도 되고, 머리글 이름은 체중이어야 합니다.', 'schema');
     const g = function (r, k) {
       const i = idx[k];
       return i >= 0 ? clean(r[i]) : '';
@@ -293,7 +325,7 @@
         badminton: num(g(r, 'badminton')), memo: g(r, 'memo')
       });
     });
-    if (!recs.length) throw new Error('‘측정’ 탭에 측정 행이 없어요.');
+    if (!recs.length) throw fail('‘측정’ 탭에 측정 행이 없어요.', 'empty');
     const order = [];
     const by = {};
     recs.forEach(function (x) {
@@ -350,14 +382,11 @@
 
   function buildGoals(rows) {
     const list = rows || [];
-    const hi = list.findIndex(function (r) {
-      const cells = r || [];
-      return cells.some(function (c) { return normH(c) === '이름'; }) && cells.some(function (c) { return normH(c) === '시점'; });
-    });
-    if (hi < 0) throw new Error('목표 머리글 없음');
+    const found = findHeader(list, GCOLS, 'name');
+    if (found.index < 0 || !found.idx || found.idx.when < 0) throw fail('목표 머리글 없음', 'schema');
+    const hi = found.index;
     const head = list[hi].map(normH);
-    const I = {};
-    Object.keys(GCOLS).forEach(function (k) { I[k] = colIndex(head, GCOLS[k]); });
+    const I = found.idx;
     const LB = {};
     GOAL_METRICS.forEach(function (m) { LB[m.k] = head.indexOf(normH(m.n + '표시')); });
     const g = function (r, i) { return i >= 0 ? clean(r[i]) : ''; };
@@ -398,10 +427,10 @@
       if (gs && !P.goal) P.goal = gs;
     });
     const ws = Array.from(weeks).sort(function (a, b) { return a - b; });
-    if (!ws.length) throw new Error('목표 시점 없음');
+    if (!ws.length) throw fail('목표 시점 없음', 'schema');
     const fin = ws[ws.length - 1];
     const names = order.filter(function (n) { return people[n].pts[0] && people[n].pts[fin]; });
-    if (!names.length) throw new Error('목표 행 없음');
+    if (!names.length) throw fail('목표 행 없음', 'empty');
     const anyStart = people[names[0]].pts[0].date;
     const periodStart = parseDate(set[normH('기간시작')] || '') || anyStart || '';
     names.forEach(function (n) { interpolatePerson(people[n], ws, periodStart); });
@@ -524,6 +553,102 @@
     return (goals.remeasure || []).find(function (d) { return d >= t && (!last || d > last); }) || null;
   }
 
+  function roundTo(v, d) {
+    const p = Math.pow(10, d);
+    return Math.round(v * p) / p;
+  }
+
+  const CHANGE_METRICS = [
+    { k: 'weight', n: '체중', d: 1, unit: 'kg' },
+    { k: 'pbf', n: '체지방률', d: 1, unit: '%p' },
+    { k: 'smm', n: '골격근량', d: 1, unit: 'kg' }
+  ];
+
+  function changeClause(name, delta, d, unit, last) {
+    const v = roundTo(delta, d);
+    const eps = d === 0 ? 0.5 : 0.05;
+    if (Math.abs(v) < eps) return name + josa(name) + ' 그대로' + (last ? '입니다' : '이고');
+    const verb = v < 0 ? (last ? '줄었습니다' : '줄고') : (last ? '늘었습니다' : '늘고');
+    return name + josa(name) + ' ' + Math.abs(v).toFixed(d) + unit + ' ' + verb;
+  }
+
+  function metricSentence(fromRec, toRec) {
+    const items = [];
+    CHANGE_METRICS.forEach(function (m) {
+      if (!fromRec || !toRec || fromRec[m.k] == null || toRec[m.k] == null) return;
+      const a = Number(fromRec[m.k]);
+      const b = Number(toRec[m.k]);
+      if (!Number.isFinite(a) || !Number.isFinite(b)) return;
+      items.push({ m: m, delta: b - a });
+    });
+    if (!items.length) return '';
+    return items.map(function (it, i) {
+      return changeClause(it.m.n, it.delta, it.m.d, it.m.unit, i === items.length - 1);
+    }).join(', ');
+  }
+
+  function changeSummary(recs) {
+    const rows = (recs || []).filter(function (r) {
+      return r && r.date && CHANGE_METRICS.some(function (m) { return r[m.k] != null; });
+    }).slice().sort(function (a, b) {
+      return String(a.date).localeCompare(String(b.date)) || String(a.time || '').localeCompare(String(b.time || ''));
+    });
+    if (rows.length < 2) return { sentence: '', latest: '' };
+    const body = metricSentence(rows[0], rows[rows.length - 1]);
+    const sentence = body ? shortDate(rows[0].date) + ' 이후 ' + body + '.' : '';
+    let latest = '';
+    if (rows.length > 2) {
+      const mid = metricSentence(rows[rows.length - 2], rows[rows.length - 1]);
+      if (mid) latest = shortDate(rows[rows.length - 2].date) + '보다 ' + mid + '.';
+    }
+    return { sentence: sentence, latest: latest };
+  }
+
+  function periodBounds(span, today) {
+    const days = span === '4' || span === 4 ? 28 : (span === '12' || span === 12 ? 84 : 0);
+    if (!days) return { from: '', to: '' };
+    const to = today || todayStr();
+    const from = addDays(to, -days);
+    if (!from) return { from: '', to: '' };
+    return { from: from, to: to };
+  }
+
+  function clipPath(tp, from, to) {
+    if (!tp || tp.length < 2 || !from || !to || to < from) return [];
+    const out = [];
+    function push(date, v) {
+      if (v == null || !Number.isFinite(v) || !date) return;
+      if (out.length && out[out.length - 1].date === date) return;
+      out.push({ date: date, v: v });
+    }
+    push(from, pathAt(tp, from));
+    tp.forEach(function (p) {
+      if (p.date > from && p.date < to) push(p.date, p.v);
+    });
+    push(to, pathAt(tp, to));
+    return out;
+  }
+
+  function goalGapText(metric, actual, target, ahead, mode) {
+    mode = mode || {};
+    if (actual == null || !Number.isFinite(Number(actual))) return '';
+    const unit = metric.u || '';
+    if (mode.band) {
+      return '유지 범위 ' + mode.band[0] + '~' + mode.band[1] + unit + (ahead ? ' 안입니다.' : ' 밖입니다.');
+    }
+    const status = ahead ? '목표선에 맞거나 앞섭니다.' : '목표선보다 뒤처집니다.';
+    if (target == null || !Number.isFinite(Number(target))) {
+      if (mode.max != null || mode.min != null) return ahead ? '목표를 지키고 있습니다.' : '목표를 벗어나 있습니다.';
+      return '';
+    }
+    const d = metric.d == null ? 1 : metric.d;
+    const diffUnit = metric.k === 'pbf' ? '%p' : unit;
+    const diff = roundTo(Number(actual) - Number(target), d);
+    const eps = d === 0 ? 0.5 : 0.05;
+    if (Math.abs(diff) < eps) return '목표선과 같습니다. ' + status;
+    return '목표선 ' + fx(target, d) + unit + '보다 ' + Math.abs(diff).toFixed(d) + diffUnit + (diff > 0 ? ' 많습니다. ' : ' 적습니다. ') + status;
+  }
+
   function josa(w) {
     const s = String(w || '');
     const c = s.charCodeAt(s.length - 1) - 0xAC00;
@@ -543,18 +668,21 @@
     return fetch('https://docs.google.com/spreadsheets/d/' + encodeURIComponent(id) + '/export?format=csv&gid=' + encodeURIComponent(gid) + '&t=' + Date.now(), {
       cache: 'no-store', signal: ctl.signal, credentials: 'omit'
     }).then(function (r) {
-      if (!r.ok) throw new Error('HTTP ' + r.status);
+      if (!r.ok) throw fail('HTTP ' + r.status, 'network');
       return r.text();
     }).then(function (t) {
-      if (!t || /^\s*<(!doctype|html)/i.test(t)) throw new Error('공개되지 않은 시트');
+      if (!t || /^\s*<(!doctype|html)/i.test(t)) throw fail('공개되지 않은 시트', 'network');
       return parseCsv(t);
+    }).catch(function (e) {
+      if (e && e.code) throw e;
+      throw fail(e && e.name === 'AbortError' ? '응답 없음' : '불러오기 실패', 'network');
     }).finally(function () { clearTimeout(tm); });
   }
 
   let gvizSeq = 0;
   function fetchGviz(id, tab) {
     return new Promise(function (resolve, reject) {
-      if (typeof document === 'undefined') { reject(new Error('불러오기 실패')); return; }
+      if (typeof document === 'undefined') { reject(fail('불러오기 실패', 'network')); return; }
       const cb = '__inbodyCb' + (++gvizSeq) + '_' + Date.now();
       const sc = document.createElement('script');
       const done = function () {
@@ -562,10 +690,10 @@
         sc.remove();
         clearTimeout(tm);
       };
-      const tm = setTimeout(function () { done(); reject(new Error('응답 없음')); }, 20000);
+      const tm = setTimeout(function () { done(); reject(fail('응답 없음', 'network')); }, 20000);
       root[cb] = function (resp) {
         done();
-        if (!resp || resp.status === 'error' || !resp.table) { reject(new Error('시트 읽기 실패')); return; }
+        if (!resp || resp.status === 'error' || !resp.table) { reject(fail('시트 읽기 실패', 'network')); return; }
         const t = resp.table;
         const nc = t.cols.length;
         const head = t.cols.map(function (c) { return c.label || ''; });
@@ -574,17 +702,23 @@
           for (let i = 0; i < nc; i++) o.push(cellText((r.c || [])[i]));
           return o;
         });
-        const useful = head.some(function (h) { return normH(h) === '이름'; });
+        const useful = head.some(function (h) { return colIndex([normH(h)], COLS.name) >= 0; });
         resolve(useful ? [head].concat(body) : body);
       };
-      sc.onerror = function () { done(); reject(new Error('불러오기 실패')); };
+      sc.onerror = function () { done(); reject(fail('불러오기 실패', 'network')); };
       sc.src = 'https://docs.google.com/spreadsheets/d/' + encodeURIComponent(id) + '/gviz/tq?tqx=out:json;responseHandler:' + cb + '&headers=0&sheet=' + encodeURIComponent(tab) + '&t=' + Date.now();
       document.head.appendChild(sc);
     });
   }
 
   function assertSheetId(id) {
-    if (!/^[A-Za-z0-9_-]{20,}$/.test(id || '')) throw new Error('시트 주소의 형식이 올바르지 않아요.');
+    if (!/^[A-Za-z0-9_-]{20,}$/.test(id || '')) throw fail('시트 주소의 형식이 올바르지 않아요.', 'network');
+  }
+
+  function preferParseError(primary, extra) {
+    if (primary && (primary.code === 'schema' || primary.code === 'empty')) return primary;
+    if (extra && (extra.code === 'schema' || extra.code === 'empty')) return extra;
+    return fail('시트를 열 수 없어요 (' + ((primary && primary.message) || (extra && extra.message) || '알 수 없음') + ')', 'network');
   }
 
   async function loadMeasurements(id, gid) {
@@ -600,9 +734,7 @@
     }
     if (!rows) {
       try { rows = await fetchGviz(id, TAB_NAME); }
-      catch (e2) {
-        throw (err && /이름|체중|측정/.test(err.message)) ? err : new Error('시트를 열 수 없어요 (' + ((err && err.message) || e2.message) + ')');
-      }
+      catch (e2) { throw preferParseError(err, e2); }
     }
     return buildData(rows);
   }
@@ -610,7 +742,10 @@
   async function loadGoalTable(id) {
     assertSheetId(id);
     try { return buildGoals(await fetchCsv(id, GOAL_GID)); }
-    catch (e) { return buildGoals(await fetchGviz(id, GOAL_TAB)); }
+    catch (e) {
+      try { return buildGoals(await fetchGviz(id, GOAL_TAB)); }
+      catch (e2) { throw preferParseError(e, e2); }
+    }
   }
 
   const api = {
@@ -619,6 +754,7 @@
     dday: dday, mdw: mdw, monthSpan: monthSpan, missingMonths: missingMonths,
     buildData: buildData, buildGoals: buildGoals, goalPath: goalPath, pathAt: pathAt, onTrack: onTrack, goalMetric: goalMetric,
     goalNow: goalNow, nextCheckpoint: nextCheckpoint, nextMeasure: nextMeasure, josa: josa,
+    changeSummary: changeSummary, periodBounds: periodBounds, clipPath: clipPath, goalGapText: goalGapText,
     loadMeasurements: loadMeasurements, loadGoalTable: loadGoalTable,
     GOAL_METRICS: GOAL_METRICS, GOAL_NOTE_DEFAULT: GOAL_NOTE_DEFAULT, TAB_NAME: TAB_NAME, GOAL_TAB: GOAL_TAB
   };
