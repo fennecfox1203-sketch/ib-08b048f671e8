@@ -126,7 +126,7 @@ assert.ok(/bf-over" style="opacity:0\.400/.test(mid) && /bf20\.webp/.test(mid), 
 const exact = I.bodySVG({ pbf: 20, height: 180 }, '#7c9cff', '', 180);
 assert.ok(exact.indexOf('bf-over') < 0 && /bf20\.webp\?v=20261007/.test(exact), 'exact anchor is one opaque picture');
 const html = fs.readFileSync(path.join(root, 'index.html'), 'utf8');
-assert.ok(html.indexOf('styles.css?v=20261011') >= 0 && html.indexOf('app.js?v=20261011') >= 0, 'cache bust');
+assert.ok(html.indexOf('styles.css?v=20261012') >= 0 && html.indexOf('app.js?v=20261012') >= 0 && html.indexOf('charts.js?v=20261012') >= 0, 'cache bust');
 const shape = I.bodyShape(round);
 assert.ok(shape.f > 0.85, 'high body fat is round ' + shape.f);
 assert.ok(shape.m < 0.7, 'muscle stays skeletal ' + shape.m);
@@ -209,5 +209,24 @@ assert.ok(zoom.indexOf('data-date="2026-10-05"') >= 0, '4주 keeps October');
 assert.ok(zoom.indexOf('변화 없음') < 0, 'one point is not called unchanged');
 const bandSvg = I.lineChart('체중', data.by.C, 'weight', 'kg', 1, '#ff8fc7', { band: [68, 72] });
 assert.ok(bandSvg.indexOf('rgba(61,214,140') >= 0 && bandSvg.indexOf('NaN') < 0, 'maintain band');
+
+const glance = I.goalGlance(goals, data, 'A', '#6aa8ff');
+I.GOAL_METRICS.forEach(function (m) { assert.ok(glance.indexOf(m.n) >= 0, 'glance has ' + m.n); });
+assert.ok(glance.indexOf('24주 목표') >= 0, 'final horizon');
+assert.ok(glance.indexOf('84.0kg') >= 0 && glance.indexOf('81.2kg') >= 0 && glance.indexOf('74.0kg') >= 0, 'weight start now goal');
+assert.ok(glance.indexOf('28%') >= 0, 'weight progress');
+assert.ok(glance.indexOf('BMI') < 0 && glance.indexOf('체지방량') < 0, 'no invented metric');
+const cGlance = I.goalGlance(goals, data, 'C', '#ff8fc7');
+assert.ok(cGlance.indexOf('68~72kg') >= 0 && cGlance.indexOf('범위 안') >= 0, 'maintain band');
+assert.ok(cGlance.indexOf('70.6kg') >= 0, 'band uses the measurement');
+eq(I.goalGlance(null, data, 'A', '#6aa8ff'), '');
+const partial = JSON.parse(JSON.stringify(goals));
+partial.people.A.pts[partial.fin].vfl = null;
+partial.people.A.pts[partial.fin].score = null;
+const fewer = I.goalGlance(partial, data, 'A', '#6aa8ff');
+assert.ok(fewer.indexOf('내장지방') < 0 && fewer.indexOf('>점수<') < 0, 'drops metrics without a final goal');
+assert.ok(fewer.indexOf('체중') >= 0 && fewer.indexOf('골격근량') >= 0 && fewer.indexOf('체지방률') >= 0, 'keeps the defined ones');
+const bare = I.goalGlance(goals, { by: {} }, 'A', '#6aa8ff');
+assert.ok(bare.indexOf('–') >= 0 && bare.indexOf('81.2kg') < 0, 'missing measurement is not invented');
 
 console.log('ok ' + data.count + ' rows, week8 ' + goals.people.A.pts[8].weight + ', gap ratio ' + ratio.toFixed(3));
