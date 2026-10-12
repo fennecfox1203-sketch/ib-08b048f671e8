@@ -163,6 +163,7 @@
       '<div class="gc-stats"><div><span class="v" style="color:' + c + '">' + (r.score == null ? '–' : I.esc(r.score)) + '</span><span class="l">점수</span></div>' +
       '<div><span class="v">' + pct.toFixed(0) + '%</span><span class="l">' + fin + '주 진행</span></div></div></div>' +
       deltaBlock(name) +
+      I.goalGlance(goals, viewData(), name, c) +
       '<div class="gchips">' + mets.map(function (x) {
         return '<button type="button" class="gchip' + (x.k === m.k ? ' on' : '') + '" data-person="' + I.esc(name) + '" data-metric="' + x.k + '"' +
           (x.k === m.k ? ' style="color:' + c + '"' : '') + '>' + x.n + '</button>';

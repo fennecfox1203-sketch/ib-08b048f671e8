@@ -301,6 +301,7 @@
       s += '<polyline points="' + act.map(function (a) { return X(a.date).toFixed(1) + ',' + Y(a.v).toFixed(1); }).join(' ') + '" fill="none" stroke="' + c + '" stroke-width="2.6" stroke-linejoin="round" stroke-linecap="round"/>';
     }
     const dir = tp[tp.length - 1].v - tp[0].v;
+    const pending = [];
     tp.forEach(function (p, i) {
       const x = X(p.date);
       const y = Y(p.v);
@@ -308,15 +309,11 @@
       const showLab = p.w === 0 || p.w === goals.fin || on || p.interp;
       if (showLab) {
         const t = (p.L || fmt(p.v)) + (p.interp ? '*' : '');
-        const tw = t.length * 6.2 + 8;
-        let lx = x;
         let ly = dir < 0 ? y - 8 : y + 14;
         if (i === 0) ly = dir < 0 ? y + 16 : y - 8;
         if (p.interp) ly = y - 8;
         ly = Math.max(T + 12, Math.min(T + ph - 4, ly));
-        const rx = Math.max(L, Math.min(W - R - tw, lx - tw / 2));
-        s += '<rect x="' + rx.toFixed(1) + '" y="' + (ly - 11).toFixed(1) + '" width="' + tw.toFixed(1) + '" height="14" rx="4" fill="#151b24" fill-opacity=".9"/>';
-        s += '<text x="' + (rx + tw / 2).toFixed(1) + '" y="' + ly.toFixed(1) + '" font-size="10" font-weight="700" fill="' + (p.interp ? '#9db4ff' : (on ? '#d6defc' : '#c3ccd9')) + '" text-anchor="middle">' + esc(t) + '</text>';
+        pending.push({ t: t, x: x, ly: ly, on: on, interp: p.interp });
       }
       const fill = p.interp ? '#151b24' : (on ? '#7c9cff' : '#151b24');
       const stroke = p.interp ? '#9db4ff' : (on ? '#d6defc' : '#aeb8c7');
@@ -326,7 +323,62 @@
       const ok = I0.onTrack(P, m, tp, a.date, a.v);
       s += '<circle data-date="' + esc(a.date) + '" data-track="' + (ok ? '1' : '0') + '" cx="' + X(a.date).toFixed(1) + '" cy="' + Y(a.v).toFixed(1) + '" r="4.6" fill="' + (ok ? '#3dd68c' : '#ffb020') + '" stroke="' + c + '" stroke-width="2"/>';
     });
+    pending.forEach(function (lab) {
+      const tw = lab.t.length * 6.4;
+      const x = Math.max(L + tw / 2, Math.min(W - R - tw / 2, lab.x));
+      const fill = lab.interp ? '#b7c6ff' : (lab.on ? '#9eb6ff' : '#d5deea');
+      s += '<text x="' + x.toFixed(1) + '" y="' + lab.ly.toFixed(1) + '" font-size="11" font-weight="700" fill="' + fill + '" text-anchor="middle">' + esc(lab.t) + '</text>';
+    });
     return s + '</svg>';
+  }
+
+  function goalGlance(goals, data, name, color) {
+    const I0 = I();
+    const esc = I0.esc;
+    const fx = I0.fx;
+    const P = goals && goals.people && goals.people[name];
+    if (!P || !goals) return '';
+    const fin = goals.fin;
+    const now = I0.goalNow(data, name);
+    const mets = I0.GOAL_METRICS.filter(function (m) {
+      return P.pts[0][m.k] != null && (P.pts[fin] || {})[m.k] != null;
+    });
+    if (!mets.length) return '';
+    const unit = function (m, v) { return v == null ? '–' : fx(v, m.d) + m.u; };
+    const rows = mets.map(function (m) {
+      const g = I0.goalMetric(goals, P, m, now[m.k], fin);
+      if (!g) return '';
+      const s0 = P.pts[0][m.k];
+      const tg = (P.pts[fin] || {})[m.k];
+      const cur = now[m.k];
+      let track;
+      if (g.band) {
+        const extra = Math.max(0.5, (g.band[1] - g.band[0]) * 0.35);
+        const vals = [g.band[0], g.band[1], s0];
+        if (cur != null) vals.push(cur);
+        const lo = Math.min.apply(null, vals) - extra;
+        const hi = Math.max.apply(null, vals) + extra;
+        const span = hi - lo || 1;
+        const pos = function (v) { return Math.max(0, Math.min(100, (v - lo) / span * 100)); };
+        track = '<div class="gm-bar glance-bar" aria-hidden="true"><div class="band" style="left:' + pos(g.band[0]).toFixed(1) + '%;width:' + Math.max(0, pos(g.band[1]) - pos(g.band[0])).toFixed(1) + '%"></div>' +
+          (cur != null ? '<div class="pt" style="left:' + pos(cur).toFixed(1) + '%;background:' + color + '"></div>' : '') + '</div>';
+      } else {
+        const w = Math.max(g.pct > 0 ? 3 : 0, Math.min(100, g.pct));
+        const col = g.st === 'ok' ? 'var(--ok)' : g.st === 'bad' ? 'var(--bad)' : color;
+        track = '<div class="gm-bar glance-bar" aria-hidden="true"><i style="width:' + w.toFixed(1) + '%;background:' + col + '"></i></div>';
+      }
+      const st = g.band ? (g.st === 'ok' ? '범위 안' : '범위 밖') : ((g.moving ? g.pct.toFixed(0) + '% · ' : '') + g.txt);
+      const bits = g.band
+        ? [['시작', unit(m, s0)], ['지금', unit(m, cur)], ['유지', g.band[0] + '~' + g.band[1] + m.u]]
+        : [['시작', unit(m, s0)], ['지금', unit(m, cur)], ['목표', unit(m, tg)]];
+      return '<div class="glance"><div class="glance-h"><span class="n">' + esc(m.n) + '</span><span class="st ' + g.st + '">' + esc(st) + '</span></div>' +
+        track +
+        '<div class="glance-v">' + bits.map(function (b) {
+          return '<span><em>' + b[0] + '</em> ' + esc(b[1]) + '</span>';
+        }).join('') + '</div></div>';
+    }).join('');
+    if (!rows) return '';
+    return '<div class="glances"><div class="glance-title">' + fin + '주 목표</div>' + rows + '</div>';
   }
 
   root.Inbody = root.Inbody || {};
@@ -334,4 +386,5 @@
   root.Inbody.rangeBar = rangeBar;
   root.Inbody.lineChart = lineChart;
   root.Inbody.goalChartSVG = goalChartSVG;
+  root.Inbody.goalGlance = goalGlance;
 })(typeof globalThis !== 'undefined' ? globalThis : this);

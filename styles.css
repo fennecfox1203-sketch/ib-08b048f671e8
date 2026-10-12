@@ -299,6 +299,15 @@ h1 {
 .gtab td.fin { font-weight: 800; }
 .gtab td.interp { color: #b7c6ff; }
 .star { color: var(--accent); font-weight: 800; }
+.glances { margin: 4px 0 14px; }
+.glance-title { font-size: .92rem; font-weight: 800; color: var(--muted); margin: 0 0 8px; }
+.glance { margin: 0 0 12px; }
+.glance-h { display: flex; justify-content: space-between; align-items: baseline; gap: 8px; font-size: 1rem; }
+.glance-h .n { font-weight: 800; }
+.glance-h .st { font-size: .8rem; font-weight: 800; padding: 2px 8px; border-radius: 999px; }
+.glance-bar { height: 14px; margin: 6px 0 6px; }
+.glance-v { display: flex; flex-wrap: wrap; gap: 4px 12px; font-size: .95rem; font-variant-numeric: tabular-nums; }
+.glance-v em { font-style: normal; color: var(--muted); font-weight: 650; margin-right: 2px; }
 .gm { margin: 0 0 12px; }
 .gm-h { display: flex; justify-content: space-between; align-items: baseline; gap: 8px; font-size: .92rem; }
 .gm-h .n { font-weight: 750; }
