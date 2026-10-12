@@ -301,6 +301,7 @@
       s += '<polyline points="' + act.map(function (a) { return X(a.date).toFixed(1) + ',' + Y(a.v).toFixed(1); }).join(' ') + '" fill="none" stroke="' + c + '" stroke-width="2.6" stroke-linejoin="round" stroke-linecap="round"/>';
     }
     const dir = tp[tp.length - 1].v - tp[0].v;
+    const pending = [];
     tp.forEach(function (p, i) {
       const x = X(p.date);
       const y = Y(p.v);
@@ -308,15 +309,11 @@
       const showLab = p.w === 0 || p.w === goals.fin || on || p.interp;
       if (showLab) {
         const t = (p.L || fmt(p.v)) + (p.interp ? '*' : '');
-        const tw = t.length * 6.2 + 8;
-        let lx = x;
         let ly = dir < 0 ? y - 8 : y + 14;
         if (i === 0) ly = dir < 0 ? y + 16 : y - 8;
         if (p.interp) ly = y - 8;
         ly = Math.max(T + 12, Math.min(T + ph - 4, ly));
-        const rx = Math.max(L, Math.min(W - R - tw, lx - tw / 2));
-        s += '<rect x="' + rx.toFixed(1) + '" y="' + (ly - 11).toFixed(1) + '" width="' + tw.toFixed(1) + '" height="14" rx="4" fill="#151b24" fill-opacity=".9"/>';
-        s += '<text x="' + (rx + tw / 2).toFixed(1) + '" y="' + ly.toFixed(1) + '" font-size="10" font-weight="700" fill="' + (p.interp ? '#9db4ff' : (on ? '#d6defc' : '#c3ccd9')) + '" text-anchor="middle">' + esc(t) + '</text>';
+        pending.push({ t: t, x: x, ly: ly, on: on, interp: p.interp });
       }
       const fill = p.interp ? '#151b24' : (on ? '#7c9cff' : '#151b24');
       const stroke = p.interp ? '#9db4ff' : (on ? '#d6defc' : '#aeb8c7');
@@ -325,6 +322,12 @@
     act.forEach(function (a) {
       const ok = I0.onTrack(P, m, tp, a.date, a.v);
       s += '<circle data-date="' + esc(a.date) + '" data-track="' + (ok ? '1' : '0') + '" cx="' + X(a.date).toFixed(1) + '" cy="' + Y(a.v).toFixed(1) + '" r="4.6" fill="' + (ok ? '#3dd68c' : '#ffb020') + '" stroke="' + c + '" stroke-width="2"/>';
+    });
+    pending.forEach(function (lab) {
+      const tw = lab.t.length * 6.4;
+      const x = Math.max(L + tw / 2, Math.min(W - R - tw / 2, lab.x));
+      const fill = lab.interp ? '#b7c6ff' : (lab.on ? '#9eb6ff' : '#d5deea');
+      s += '<text x="' + x.toFixed(1) + '" y="' + lab.ly.toFixed(1) + '" font-size="11" font-weight="700" fill="' + fill + '" text-anchor="middle">' + esc(lab.t) + '</text>';
     });
     return s + '</svg>';
   }

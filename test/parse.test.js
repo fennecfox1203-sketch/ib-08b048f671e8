@@ -95,6 +95,9 @@ assert.ok(/data-week="8" data-interp="1"/.test(goalSvg), 'interpolated week 8');
 assert.ok(/data-date="2026-08-26"[^>]*data-track="1"/.test(goalSvg), 'ahead');
 assert.ok(/data-date="2026-10-05"[^>]*data-track="0"/.test(goalSvg), 'behind');
 assert.ok(goalSvg.indexOf('D-day') >= 0, 'checkpoint today');
+assert.ok(goalSvg.indexOf('fill-opacity=".9"') < 0, 'goal values have no background box');
+assert.ok(goalSvg.indexOf('>80.5*<') >= 0, 'interpolated value label');
+assert.ok(/fill="#b7c6ff"[^>]*>80\.5\*</.test(goalSvg), 'interpolated label uses the goal tint');
 
 const line = I.lineChart('체중', data.by.A, 'weight', 'kg', 1, '#6aa8ff');
 assert.ok(line.indexOf('NaN') < 0, 'line NaN');
